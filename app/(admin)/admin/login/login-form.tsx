@@ -1,20 +1,21 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth-client";
 import { LockKeyhole } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import { toast } from "sonner";
 
 export function AdminLoginForm() {
   const router = useRouter();
-  const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setPending(true);
-    setError("");
 
     const formData = new FormData(event.currentTarget);
     const username = String(formData.get("username") ?? "");
@@ -28,7 +29,7 @@ export function AdminLoginForm() {
     setPending(false);
 
     if (result.error) {
-      setError(result.error.message ?? "Unable to sign in");
+      toast.error(result.error.message ?? "Unable to sign in");
       return;
     }
 
@@ -36,7 +37,7 @@ export function AdminLoginForm() {
 
     if (session.error || session.data?.user.role !== "admin") {
       await authClient.signOut();
-      setError("This account does not have admin access");
+      toast.error("This account does not have admin access");
       return;
     }
 
@@ -48,8 +49,8 @@ export function AdminLoginForm() {
     <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
       <label className="flex flex-col gap-1.5 text-sm font-medium">
         Username
-        <input
-          className="h-10 rounded-md border border-slate-300 bg-white px-3 text-sm outline-none ring-sky-200 transition focus:border-sky-500 focus:ring-3"
+        <Input
+          className="h-10"
           name="username"
           type="text"
           autoComplete="username"
@@ -58,17 +59,16 @@ export function AdminLoginForm() {
       </label>
       <label className="flex flex-col gap-1.5 text-sm font-medium">
         Password
-        <input
-          className="h-10 rounded-md border border-slate-300 bg-white px-3 text-sm outline-none ring-sky-200 transition focus:border-sky-500 focus:ring-3"
+        <Input
+          className="h-10"
           name="password"
           type="password"
           autoComplete="current-password"
           required
         />
       </label>
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
       <Button type="submit" className="h-10" disabled={pending}>
-        <LockKeyhole />
+        {pending ? <Spinner /> : <LockKeyhole />}
         Sign in
       </Button>
     </form>

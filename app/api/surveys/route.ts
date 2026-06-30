@@ -2,7 +2,7 @@ import { jsonError, jsonOk, serialize } from "@/lib/api/survey";
 import { SurveyStatus } from "@/lib/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
 
-export async function GET(_request: Request) {
+export async function GET() {
   try {
     const surveys = await prisma.survey.findMany({
       where: {

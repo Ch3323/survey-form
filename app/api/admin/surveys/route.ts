@@ -3,6 +3,7 @@ import {
   parseSurveyCreatePayload,
 } from "@/lib/api/survey-admin";
 import {
+  ApiError,
   jsonError,
   jsonOk,
   parseStatus,
@@ -48,6 +49,12 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     await requireAdmin(request.headers);
+
+    const existingSurveyCount = await prisma.survey.count();
+
+    if (existingSurveyCount > 0) {
+      throw new ApiError(409, "Only one survey can be managed in this app");
+    }
 
     const payload = parseSurveyCreatePayload(await readJson(request));
     const survey = await createSurveyWithQuestions(payload);

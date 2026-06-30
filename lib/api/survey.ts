@@ -8,9 +8,11 @@ import {
 
 export const surveyInclude = {
   questions: {
+    where: { isActive: true },
     orderBy: { sortOrder: "asc" as const },
     include: {
       options: {
+        where: { isActive: true },
         orderBy: { sortOrder: "asc" as const },
       },
     },
