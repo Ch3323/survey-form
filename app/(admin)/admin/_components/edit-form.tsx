@@ -120,29 +120,12 @@ export function EditForm({
         </div>
       </section>
 
-      <section className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-cloud-panel)] sm:flex-row sm:items-end sm:justify-between">
-        <div className="grid w-full gap-2 sm:max-w-xs">
-          <Label htmlFor="new-question-type">Question type</Label>
-          <select
-            id="new-question-type"
-            className="h-9 w-full rounded-lg border border-input bg-card px-3 py-1 text-sm shadow-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/35"
-            value={newQuestionType}
-            onChange={(event) =>
-              onSetNewQuestionType(event.target.value as InputType)
-            }
-          >
-            {inputTypes.map((type) => (
-              <option key={type} value={type}>
-                {typeLabel(type)}
-              </option>
-            ))}
-          </select>
-        </div>
+      <div className="flex w-full justify-end">
         <Button type="button" onClick={onAddSection}>
           <Plus />
           Add section
         </Button>
-      </section>
+      </div>
 
       <div className="grid gap-4">
         {sections.length === 0 ? (
