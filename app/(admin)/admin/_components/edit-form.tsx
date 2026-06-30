@@ -13,10 +13,8 @@ import { Plus, Save } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import {
   groupQuestionsIntoSections,
-  typeLabel,
 } from "../_lib/survey-form-utils";
 import {
-  inputTypes,
   type InputType,
   type SectionMeta,
   type SurveyForm,
@@ -49,7 +47,6 @@ type EditFormProps = {
 };
 
 export function EditForm({
-  newQuestionType,
   saving,
   survey,
   onAddOption,
@@ -60,7 +57,6 @@ export function EditForm({
   onRemoveQuestion,
   onRemoveSection,
   onSave,
-  onSetNewQuestionType,
   onSetSurvey,
   onUpdateOption,
   onUpdateQuestion,
