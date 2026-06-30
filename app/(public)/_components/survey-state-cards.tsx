@@ -85,7 +85,7 @@ export function SurveySubmitted({
           ) : null}
           <Button type="button" variant="outline" onClick={onReset}>
             <RotateCcw />
-            Start again
+            Back
           </Button>
         </CardContent>
       </Card>
