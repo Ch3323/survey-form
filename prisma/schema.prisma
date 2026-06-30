@@ -1,0 +1,164 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum SurveyStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum AdminRole {
+  ADMIN
+}
+
+enum SurveyQuestionInputType {
+  RATING
+  TEXT
+  TEXTAREA
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  BOOLEAN
+  NUMBER
+  DATE
+  EMAIL
+  URL
+}
+
+model Survey {
+  id          String           @id @default(uuid()) @db.Uuid
+  slug        String           @unique @db.VarChar(80)
+  title       String           @db.VarChar(160)
+  description String?
+  status      SurveyStatus     @default(DRAFT)
+  questions   SurveyQuestion[]
+  responses   SurveyResponse[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([status])
+  @@map("surveys")
+}
+
+model SurveyQuestion {
+  id           String                  @id @default(uuid()) @db.Uuid
+  surveyId     String                  @db.Uuid
+  survey       Survey                  @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  title        String
+  helpText     String?
+  inputType    SurveyQuestionInputType @default(TEXT)
+  sortOrder    Int                     @default(0)
+  placeholder  String?                 @db.VarChar(255)
+  defaultValue String?
+  maxLength    Int?
+  minValue     Decimal?                @db.Decimal(12, 2)
+  maxValue     Decimal?                @db.Decimal(12, 2)
+  stepValue    Decimal?                @db.Decimal(12, 2)
+  settings     Json?
+  validation   Json?
+  required     Boolean                 @default(true)
+  isActive     Boolean                 @default(true)
+  options      SurveyQuestionOption[]
+  answers      SurveyAnswer[]
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+
+  @@index([surveyId, sortOrder])
+  @@index([surveyId, inputType])
+  @@index([surveyId, isActive])
+  @@map("survey_questions")
+}
+
+model SurveyQuestionOption {
+  id         String               @id @default(uuid()) @db.Uuid
+  questionId String               @db.Uuid
+  question   SurveyQuestion       @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  label      String
+  value      String               @db.VarChar(160)
+  sortOrder  Int                  @default(0)
+  isActive   Boolean              @default(true)
+  answers    SurveyAnswerOption[]
+  createdAt  DateTime             @default(now())
+  updatedAt  DateTime             @updatedAt
+
+  @@unique([questionId, value])
+  @@index([questionId, sortOrder])
+  @@index([questionId, isActive])
+  @@map("survey_question_options")
+}
+
+model SurveyResponse {
+  id           String         @id @default(uuid()) @db.Uuid
+  surveyId     String         @db.Uuid
+  survey       Survey         @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  anonymousKey String?        @db.VarChar(120)
+  totalScore   Int            @default(0)
+  averageScore Decimal        @default(0) @db.Decimal(4, 2)
+  answers      SurveyAnswer[]
+  submittedAt  DateTime       @default(now())
+  createdAt    DateTime       @default(now())
+
+  @@index([surveyId, submittedAt])
+  @@index([anonymousKey])
+  @@map("survey_responses")
+}
+
+model SurveyAnswer {
+  id                    String                  @id @default(uuid()) @db.Uuid
+  responseId            String                  @db.Uuid
+  response              SurveyResponse          @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  questionId            String                  @db.Uuid
+  question              SurveyQuestion          @relation(fields: [questionId], references: [id], onDelete: Restrict)
+  questionTitleSnapshot String
+  questionInputType     SurveyQuestionInputType
+  score                 Int?
+  textValue             String?
+  booleanValue          Boolean?
+  numberValue           Decimal?                @db.Decimal(12, 2)
+  dateValue             DateTime?
+  selectedOptions       SurveyAnswerOption[]
+  createdAt             DateTime                @default(now())
+
+  @@unique([responseId, questionId])
+  @@index([questionId])
+  @@map("survey_answers")
+}
+
+model SurveyAnswerOption {
+  id        String               @id @default(uuid()) @db.Uuid
+  answerId  String               @db.Uuid
+  answer    SurveyAnswer         @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  optionId  String               @db.Uuid
+  option    SurveyQuestionOption @relation(fields: [optionId], references: [id], onDelete: Restrict)
+  createdAt DateTime             @default(now())
+
+  @@unique([answerId, optionId])
+  @@index([optionId])
+  @@map("survey_answer_options")
+}
+
+model AdminAccount {
+  id           String    @id @default(uuid()) @db.Uuid
+  email        String    @unique @db.VarChar(255)
+  passwordHash String
+  name         String?   @db.VarChar(120)
+  role         AdminRole @default(ADMIN)
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([role])
+  @@index([isActive])
+  @@map("admin_accounts")
+}
