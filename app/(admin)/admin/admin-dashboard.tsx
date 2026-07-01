@@ -45,6 +45,7 @@ export function AdminDashboard({ adminName }: AdminDashboardProps) {
   const [newQuestionType, setNewQuestionType] = useState<InputType>("RATING");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [clearingResponses, setClearingResponses] = useState(false);
   const [deletingResponseId, setDeletingResponseId] = useState("");
   const [signingOut, setSigningOut] = useState(false);
 
@@ -384,6 +385,32 @@ export function AdminDashboard({ adminName }: AdminDashboardProps) {
     }
   }
 
+  async function clearResponses() {
+    if (!survey.id || responses.length === 0) {
+      return;
+    }
+
+    setClearingResponses(true);
+
+    try {
+      const response = await fetch(`/api/admin/surveys/${survey.id}/responses`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        await readJsonResponse(response);
+      }
+
+      setResponses([]);
+      setSelectedResponseId("");
+      toast.success("All submissions cleared");
+    } catch (caught) {
+      toast.error(errorMessage(caught, "Unable to clear submissions"));
+    } finally {
+      setClearingResponses(false);
+    }
+  }
+
   async function handleSignOut() {
     setSigningOut(true);
     await authClient.signOut();
@@ -437,10 +464,12 @@ export function AdminDashboard({ adminName }: AdminDashboardProps) {
               />
             ) : (
               <SubmissionView
+                clearingResponses={clearingResponses}
                 deletingResponseId={deletingResponseId}
                 responses={responses}
                 selectedResponse={selectedResponse}
                 selectedResponseId={selectedResponseId}
+                onClearResponses={clearResponses}
                 onDeleteResponse={deleteResponse}
                 onSelectResponse={setSelectedResponseId}
               />
