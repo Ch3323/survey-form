@@ -24,3 +24,18 @@ export async function GET(request: Request, context: Params) {
     return jsonError(error);
   }
 }
+
+export async function DELETE(request: Request, context: Params) {
+  try {
+    await requireAdmin(request.headers);
+
+    const { id } = await context.params;
+    const result = await prisma.surveyResponse.deleteMany({
+      where: { surveyId: id },
+    });
+
+    return jsonOk({ deletedCount: result.count });
+  } catch (error) {
+    return jsonError(error);
+  }
+}

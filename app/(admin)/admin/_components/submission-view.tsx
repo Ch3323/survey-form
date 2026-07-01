@@ -1,5 +1,16 @@
 "use client";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,19 +31,23 @@ import type { SurveyResponse } from "../_lib/types";
 import { Stat } from "./stat";
 
 type SubmissionViewProps = {
+  clearingResponses: boolean;
   deletingResponseId: string;
   responses: SurveyResponse[];
   selectedResponse?: SurveyResponse;
   selectedResponseId: string;
+  onClearResponses: () => void;
   onDeleteResponse: (responseId: string) => void;
   onSelectResponse: (responseId: string) => void;
 };
 
 export function SubmissionView({
+  clearingResponses,
   deletingResponseId,
   responses,
   selectedResponse,
   selectedResponseId,
+  onClearResponses,
   onDeleteResponse,
   onSelectResponse,
 }: SubmissionViewProps) {
@@ -49,6 +64,46 @@ export function SubmissionView({
   return (
     <div className="grid gap-4 xl:grid-cols-[360px_1fr]">
       <div className="grid content-start gap-2">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <p className="text-sm font-medium text-muted-foreground">
+            {responses.length} submissions
+          </p>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                disabled={clearingResponses}
+              >
+                {clearingResponses ? <Spinner /> : <Trash2 />}
+                Clear all
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Clear all submissions?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will permanently delete all {responses.length} submissions
+                  and their answers. This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={clearingResponses}>
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  variant="destructive"
+                  onClick={onClearResponses}
+                  disabled={clearingResponses}
+                >
+                  {clearingResponses ? <Spinner /> : <Trash2 />}
+                  Clear all
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
         {responses.map((response) => (
           <button
             key={response.id}
