@@ -19,6 +19,11 @@ import {
   readJsonResponse,
   toPayloadAnswer,
 } from "./_lib/survey-utils";
+import {
+  clearSurveyDraft,
+  readSurveyDraft,
+  writeSurveyDraft,
+} from "./_lib/survey-draft";
 import type { AnswerValue, Answers, LoadedSurvey } from "./_lib/types";
 import { toast } from "sonner";
 
@@ -42,9 +47,13 @@ export default function Page() {
         await fetch("/api/surveys/current", { cache: "no-store" }),
       );
 
+      const draft = readSurveyDraft(data.survey);
+
       setSurvey(data.survey);
-      setAnswers({});
-      setCurrentPage(firstPageNumber(data.survey.questions));
+      setAnswers(draft?.answers ?? {});
+      setCurrentPage(
+        draft?.currentPage ?? firstPageNumber(data.survey.questions),
+      );
       setSubmitted(false);
       setResponseId("");
       setAverageScore(null);
@@ -72,6 +81,14 @@ export default function Page() {
       active = false;
     };
   }, [loadSurvey]);
+
+  useEffect(() => {
+    if (!survey || loading || submitted) {
+      return;
+    }
+
+    writeSurveyDraft(survey, answers, currentPage);
+  }, [answers, currentPage, loading, submitted, survey]);
 
   const pageGroups = useMemo(
     () => (survey ? groupQuestionsByPage(survey.questions) : []),
@@ -150,6 +167,7 @@ export default function Page() {
           ? null
           : Number(data.response.averageScore),
       );
+      clearSurveyDraft(survey.id);
       setSubmitted(true);
     } catch (caught) {
       toast.error(errorMessage(caught, "Unable to submit survey"));
@@ -159,6 +177,10 @@ export default function Page() {
   }
 
   function resetSurvey() {
+    if (survey) {
+      clearSurveyDraft(survey.id);
+    }
+
     setAnswers({});
     setCurrentPage(pageGroups[0]?.pageNumber ?? 1);
     setSubmitted(false);
