@@ -211,9 +211,7 @@ function parseSelectedOptions(
         throw new ApiError(400, `${question.title} option must be a string`);
       }
 
-      const option = question.options.find(
-        (item) => item.id === value || item.value === value,
-      );
+      const option = question.options.find((item) => item.id === value);
 
       if (!option) {
         throw new ApiError(400, `${question.title} has an invalid option`);

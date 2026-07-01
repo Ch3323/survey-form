@@ -16,10 +16,13 @@ import {
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Save } from "lucide-react";
-import type { Dispatch, SetStateAction } from "react";
+import { Download, Plus, Save, Upload } from "lucide-react";
+import { type ChangeEvent, type Dispatch, type SetStateAction, useRef } from "react";
+import { toast } from "sonner";
 import {
+  errorMessage,
   groupQuestionsIntoSections,
+  importFormTemplate,
 } from "../_lib/survey-form-utils";
 import {
   type InputType,
@@ -69,10 +72,30 @@ export function EditForm({
   onUpdateQuestion,
   onUpdateSection,
 }: EditFormProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const sections = groupQuestionsIntoSections(
     survey.questions,
     survey.sections,
   );
+
+  async function handleImportTemplate(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    try {
+      const template = JSON.parse(await file.text()) as unknown;
+
+      onSetSurvey((current) => importFormTemplate(current, template));
+      toast.success("Form template imported");
+    } catch (caught) {
+      toast.error(errorMessage(caught, "Unable to import form template"));
+    } finally {
+      event.target.value = "";
+    }
+  }
 
   return (
     <div className="flex flex-col gap-5">
@@ -91,7 +114,7 @@ export function EditForm({
           />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="survey-status">Status</Label>
+          <Label htmlFor="survey-status">Availability</Label>
           <Select
             value={survey.status}
             onValueChange={(value) =>
@@ -105,9 +128,8 @@ export function EditForm({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ACTIVE">ACTIVE</SelectItem>
-              <SelectItem value="DRAFT">DRAFT</SelectItem>
-              <SelectItem value="ARCHIVED">ARCHIVED</SelectItem>
+              <SelectItem value="ACTIVE">Active</SelectItem>
+              <SelectItem value="INACTIVE">Inactive</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -126,7 +148,30 @@ export function EditForm({
         </div>
       </section>
 
-      <div className="flex w-full justify-end">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <input
+          ref={fileInputRef}
+          className="sr-only"
+          type="file"
+          accept="application/json,.json"
+          onChange={handleImportTemplate}
+        />
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Upload />
+            Import form
+          </Button>
+          <Button type="button" variant="outline" asChild>
+            <a href="/survey-form-template.json" download>
+              <Download />
+              Template
+            </a>
+          </Button>
+        </div>
         <Button type="button" onClick={onAddSection}>
           <Plus />
           Add section
