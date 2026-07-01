@@ -87,7 +87,6 @@ model SurveyQuestionOption {
   createdAt  DateTime             @default(now())
   updatedAt  DateTime             @updatedAt
 
-  @@unique([questionId, value])
   @@index([questionId, sortOrder])
   @@index([questionId, isActive])
   @@map("survey_question_options")

@@ -64,12 +64,16 @@ export type SurveySection = SectionMeta & {
   questions: SurveyQuestion[];
 };
 
+export type SurveyStatus = "DRAFT" | "ACTIVE" | "ARCHIVED";
+export type SurveyMode = "INACTIVE" | "ACTIVE";
+
 export type SurveyForm = {
   id?: string;
   slug: string;
   title: string;
   description: string;
-  status: "DRAFT" | "ACTIVE" | "ARCHIVED";
+  status: SurveyMode;
+  replaceQuestions?: boolean;
   sections: SectionMeta[];
   questions: SurveyQuestion[];
 };
@@ -79,7 +83,7 @@ export type LoadedSurvey = {
   slug: string;
   title: string;
   description?: string | null;
-  status: SurveyForm["status"];
+  status: SurveyStatus;
   questions: Array<{
     id: string;
     title: string;
@@ -108,7 +112,7 @@ export type AdminSurveyListItem = {
   id: string;
   slug: string;
   title: string;
-  status: SurveyForm["status"];
+  status: SurveyStatus;
   _count?: {
     questions: number;
     responses: number;

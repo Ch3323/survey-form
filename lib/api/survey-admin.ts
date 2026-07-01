@@ -59,6 +59,8 @@ export function parseSurveyUpdatePayload(value: unknown) {
 
   return {
     data,
+    replaceQuestions:
+      optionalBoolean(body.replaceQuestions, "replaceQuestions") ?? false,
     questions:
       body.questions === undefined ? undefined : parseQuestions(body.questions),
   };
@@ -105,9 +107,26 @@ export async function updateSurveyWithQuestions(
         existingQuestions.map((question) => question.id),
       );
       const seenQuestionIds = new Set<string>();
+      const replaceQuestions = payload.replaceQuestions;
+
+      if (replaceQuestions && existingQuestionIds.size > 0) {
+        await tx.surveyQuestionOption.updateMany({
+          where: {
+            questionId: { in: [...existingQuestionIds] },
+          },
+          data: { isActive: false },
+        });
+        await tx.surveyQuestion.updateMany({
+          where: {
+            id: { in: [...existingQuestionIds] },
+            surveyId,
+          },
+          data: { isActive: false },
+        });
+      }
 
       for (const question of payload.questions) {
-        let questionId = question.id;
+        let questionId = replaceQuestions ? undefined : question.id;
 
         if (questionId) {
           if (!existingQuestionIds.has(questionId)) {
@@ -244,7 +263,9 @@ function parseOptions(value: unknown, questionIndex: number) {
           option.value,
           `questions[${questionIndex}].options[${index}].value`,
           160,
-        ) ?? slugify(label),
+        ) ||
+        slugify(label) ||
+        `option-${index + 1}`,
       sortOrder:
         optionalInteger(
           option.sortOrder,

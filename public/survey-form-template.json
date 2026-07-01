@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "sections": [
+    {
+      "title": "Section 1",
+      "description": "Introductory questions",
+      "questions": [
+        {
+          "title": "How satisfied are you?",
+          "helpText": "",
+          "inputType": "RATING",
+          "required": true
+        },
+        {
+          "title": "What should we improve?",
+          "helpText": "",
+          "inputType": "TEXTAREA",
+          "placeholder": "Share your thoughts",
+          "maxLength": 500,
+          "required": false
+        }
+      ]
+    },
+    {
+      "title": "Section 2",
+      "description": "Profile",
+      "questions": [
+        {
+          "title": "Which option fits you best?",
+          "helpText": "",
+          "inputType": "SINGLE_CHOICE",
+          "required": true,
+          "options": [
+            {
+              "label": "Option A"
+            },
+            {
+              "label": "Option B"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

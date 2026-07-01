@@ -96,8 +96,17 @@ export function jsonError(error: unknown) {
     }
 
     if (error.code === "P2002") {
+      const target = isRecord(error.meta) ? error.meta.target : undefined;
+      const fields = Array.isArray(target)
+        ? target.filter((item) => typeof item === "string").join(", ")
+        : "";
+
       return Response.json(
-        { error: "A record with this unique value already exists" },
+        {
+          error: fields
+            ? `A record with this unique value already exists: ${fields}`
+            : "A record with this unique value already exists",
+        },
         { status: 409 },
       );
     }
@@ -206,6 +215,10 @@ export function optionalJson(value: unknown) {
 export function parseStatus(value: unknown, fallback?: SurveyStatusValue) {
   if (value === undefined || value === null || value === "") {
     return fallback;
+  }
+
+  if (value === "INACTIVE") {
+    return SurveyStatus.DRAFT;
   }
 
   if (
