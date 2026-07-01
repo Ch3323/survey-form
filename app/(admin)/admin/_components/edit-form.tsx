@@ -7,6 +7,13 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Save } from "lucide-react";
@@ -85,21 +92,24 @@ export function EditForm({
         </div>
         <div className="grid gap-2">
           <Label htmlFor="survey-status">Status</Label>
-          <select
-            id="survey-status"
-            className="h-9 w-full rounded-lg border border-input bg-card px-3 py-1 text-sm shadow-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/35"
+          <Select
             value={survey.status}
-            onChange={(event) =>
+            onValueChange={(value) =>
               onSetSurvey((current) => ({
                 ...current,
-                status: event.target.value as SurveyForm["status"],
+                status: value as SurveyForm["status"],
               }))
             }
           >
-            <option value="ACTIVE">ACTIVE</option>
-            <option value="DRAFT">DRAFT</option>
-            <option value="ARCHIVED">ARCHIVED</option>
-          </select>
+            <SelectTrigger id="survey-status" className="h-9 w-full bg-card">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ACTIVE">ACTIVE</SelectItem>
+              <SelectItem value="DRAFT">DRAFT</SelectItem>
+              <SelectItem value="ARCHIVED">ARCHIVED</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div className="grid gap-2 sm:col-span-2">
           <Label htmlFor="survey-description">Description</Label>
