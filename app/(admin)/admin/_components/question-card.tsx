@@ -11,6 +11,13 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ArrowDown, ArrowUp, Trash2 } from "lucide-react";
 import {
   questionTypePatch,
@@ -73,23 +80,29 @@ export function QuestionCard({
           </div>
           <div className="grid gap-2">
             <Label htmlFor={`${question.clientId}-type`}>Type</Label>
-            <select
-              id={`${question.clientId}-type`}
-              className="h-9 w-full rounded-lg border border-input bg-card px-3 py-1 text-sm shadow-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/35"
+            <Select
               value={question.inputType}
-              onChange={(event) =>
+              onValueChange={(value) =>
                 onUpdateQuestion(
                   question.clientId,
-                  questionTypePatch(question, event.target.value as InputType),
+                  questionTypePatch(question, value as InputType),
                 )
               }
             >
-              {inputTypes.map((type) => (
-                <option key={type} value={type}>
-                  {typeLabel(type)}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger
+                id={`${question.clientId}-type`}
+                className="h-9 w-full bg-card"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {inputTypes.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {typeLabel(type)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
