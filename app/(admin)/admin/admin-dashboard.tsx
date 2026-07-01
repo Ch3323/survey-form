@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
@@ -403,6 +403,7 @@ export function AdminDashboard({ adminName }: AdminDashboardProps) {
 
       <SidebarInset>
         <main className="min-w-0 bg-cloud-page px-4 py-5 text-cloud-text sm:px-6 lg:px-8">
+          <SidebarTrigger className="shrink-0 text-cloud-text md:hidden mb-4" />
           <div className="mx-auto flex w-full max-w-6xl flex-col gap-5">
             <DashboardHeader
               title={activeTab === "edit" ? "Edit form" : "View submission"}
