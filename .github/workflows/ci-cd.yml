@@ -1,0 +1,122 @@
+name: CI/CD
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: survey-form-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "22"
+  NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+  ci:
+    name: Lint and build
+    runs-on: ubuntu-latest
+    env:
+      # Build-only placeholders. These are not production secrets and should not
+      # point to a real database; the CI job only needs them so imports that
+      # validate env vars can compile during `next build`.
+      DATABASE_URL: postgresql://survey:survey@localhost:5432/survey_form?schema=public
+      BETTER_AUTH_URL: http://localhost:3000
+      BETTER_AUTH_SECRET: ci-placeholder
+      CRON_SECRET: ci-placeholder
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Restore Next.js cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ${{ github.workspace }}/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+  deploy:
+    name: Deploy to server
+    runs-on: ubuntu-latest
+    needs: ci
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    environment: production
+    env:
+      # Production values come from GitHub Secrets. Do not hardcode real
+      # DATABASE_URL, auth secrets, or cron secrets in this workflow file.
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+      PRODUCTION_ENV: ${{ secrets.PRODUCTION_ENV }}
+      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate deploy secrets
+        run: |
+          test -n "$DEPLOY_HOST"
+          test -n "$DEPLOY_USER"
+          test -n "$DEPLOY_PATH"
+          test -n "$PRODUCTION_ENV"
+          test -n "$DEPLOY_SSH_KEY"
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p "${DEPLOY_PORT:-22}" "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+
+      - name: Prepare release directory
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "${DEPLOY_PORT:-22}" "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p '$DEPLOY_PATH'"
+
+      - name: Sync source to server
+        run: |
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/deploy_key -p ${DEPLOY_PORT:-22}" \
+            --exclude ".git" \
+            --exclude ".github" \
+            --exclude ".next" \
+            --exclude "node_modules" \
+            --exclude ".env" \
+            --exclude ".env.*" \
+            ./ "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/"
+
+      - name: Write production env
+        run: |
+          printf '%s\n' "$PRODUCTION_ENV" | ssh -i ~/.ssh/deploy_key -p "${DEPLOY_PORT:-22}" "$DEPLOY_USER@$DEPLOY_HOST" "cat > '$DEPLOY_PATH/.env' && chmod 600 '$DEPLOY_PATH/.env'"
+
+      - name: Deploy with Docker Compose
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "${DEPLOY_PORT:-22}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$DEPLOY_PATH' && docker compose up -d --build --remove-orphans"
+
+      - name: Show container status
+        if: always()
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "${DEPLOY_PORT:-22}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$DEPLOY_PATH' && docker compose ps"
