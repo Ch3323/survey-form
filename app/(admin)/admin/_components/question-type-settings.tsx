@@ -3,7 +3,20 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  getTextInputFilter,
+  textInputFilterLabels,
+  textInputFilters,
+  type TextInputFilter,
+} from "@/lib/survey-validation";
 import { Plus, Trash2 } from "lucide-react";
 import {
   getRatingOptions,
@@ -78,6 +91,38 @@ export function QuestionTypeSettings({
               }
             />
           </div>
+          {question.inputType === "TEXT" ? (
+            <div className="grid gap-2">
+              <Label htmlFor={`${question.clientId}-input-filter`}>
+                Input filter
+              </Label>
+              <Select
+                value={getTextInputFilter(question.validation)}
+                onValueChange={(value) =>
+                  updateQuestion({
+                    validation:
+                      value === "NONE"
+                        ? {}
+                        : { inputFilter: value as TextInputFilter },
+                  })
+                }
+              >
+                <SelectTrigger
+                  id={`${question.clientId}-input-filter`}
+                  className="h-9 w-full bg-card"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {textInputFilters.map((filter) => (
+                    <SelectItem key={filter} value={filter}>
+                      {textInputFilterLabels[filter]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : null}
           <div className="grid gap-2">
             <Label htmlFor={`${question.clientId}-max-length`}>
               Max length

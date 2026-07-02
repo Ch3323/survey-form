@@ -5,6 +5,7 @@ import {
   type SurveyQuestion,
   type InputType,
 } from "./types";
+import { applyTextInputFilter } from "@/lib/survey-validation";
 
 export function groupQuestionsByPage(questions: SurveyQuestion[]): PageGroup[] {
   const groups = new Map<string, PageGroup>();
@@ -62,7 +63,11 @@ export function questionHasValue(
   }
 
   if (typeof value === "string") {
-    return value.trim().length > 0;
+    const normalizedValue = normalizeAnswerValue(question, value);
+
+    return typeof normalizedValue === "string"
+      ? normalizedValue.trim().length > 0
+      : false;
   }
 
   if (question.inputType === "RATING") {
@@ -98,8 +103,22 @@ export function toPayloadAnswer(
     case "EMAIL":
     case "URL":
     default:
-      return { questionId: question.id, value };
+      return {
+        questionId: question.id,
+        value: normalizeAnswerValue(question, value),
+      };
   }
+}
+
+export function normalizeAnswerValue(
+  question: SurveyQuestion,
+  value: AnswerValue | undefined,
+): AnswerValue | undefined {
+  if (question.inputType === "TEXT" && typeof value === "string") {
+    return applyTextInputFilter(value, question.validation);
+  }
+
+  return value;
 }
 
 export function inputTypeToHtmlType(inputType: InputType) {

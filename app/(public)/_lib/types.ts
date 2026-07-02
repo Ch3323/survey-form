@@ -30,6 +30,7 @@ export type SurveyQuestion = {
   maxValue?: number | string | null;
   stepValue?: number | string | null;
   settings?: unknown;
+  validation?: unknown;
   options: Array<{
     id: string;
     label: string;

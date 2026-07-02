@@ -7,8 +7,10 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   getRatingOptions,
   inputTypeToHtmlType,
+  normalizeAnswerValue,
   optionalNumber,
 } from "../_lib/survey-utils";
+import { getTextInputFilter } from "@/lib/survey-validation";
 import type { AnswerValue, SurveyQuestion } from "../_lib/types";
 import { ChoiceButton } from "./choice-button";
 
@@ -26,6 +28,8 @@ export function QuestionInput({
   question,
   onUpdateAnswer,
 }: QuestionInputProps) {
+  const textInputFilter = getTextInputFilter(question.validation);
+
   switch (question.inputType) {
     case "RATING":
       return (
@@ -152,11 +156,24 @@ export function QuestionInput({
           <Input
             id={question.id}
             type={inputTypeToHtmlType(question.inputType)}
+            inputMode={
+              textInputFilter === "DIGITS_ONLY"
+                ? "numeric"
+                : undefined
+            }
+            pattern={
+              textInputFilter === "DIGITS_ONLY"
+                ? "[0-9]*"
+                : undefined
+            }
             maxLength={optionalNumber(question.maxLength)}
             placeholder={question.placeholder ?? undefined}
             value={typeof answer === "string" ? answer : ""}
             onChange={(event) =>
-              onUpdateAnswer(question.id, event.target.value)
+              onUpdateAnswer(
+                question.id,
+                normalizeAnswerValue(question, event.target.value),
+              )
             }
           />
         </div>
