@@ -57,6 +57,7 @@ export type SurveyQuestion = {
   sectionOrder: number;
   pageNumber: number;
   settings: Record<string, unknown>;
+  validation: Record<string, unknown>;
   options: SurveyOption[];
 };
 
@@ -98,6 +99,7 @@ export type LoadedSurvey = {
     required: boolean;
     isActive: boolean;
     settings?: unknown;
+    validation?: unknown;
     options: Array<{
       id: string;
       label: string;

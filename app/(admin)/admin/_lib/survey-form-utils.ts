@@ -9,6 +9,10 @@ import {
   type SurveyResponse,
   type SurveySection,
 } from "./types";
+import {
+  getTextInputFilter,
+  type TextInputFilter,
+} from "@/lib/survey-validation";
 
 export function emptySurveyForm(): SurveyForm {
   return {
@@ -81,6 +85,7 @@ export function createQuestion(
       inputType === "RATING"
         ? { ...sectionSettings, ratingOptions: defaultRatingOptions }
         : sectionSettings,
+    validation: {},
     options: choiceOptions,
   };
 }
@@ -153,6 +158,7 @@ export function groupQuestionsIntoSections(
 export function surveyToForm(survey: LoadedSurvey): SurveyForm {
   const questions = survey.questions.filter((question) => question.isActive).map((question) => {
     const settings = toRecord(question.settings);
+    const validation = toRecord(question.validation);
 
     return {
       id: question.id,
@@ -199,6 +205,7 @@ export function surveyToForm(survey: LoadedSurvey): SurveyForm {
       pageNumber:
         typeof settings.pageNumber === "number" ? settings.pageNumber : 1,
       settings,
+      validation,
       options: question.options
         .filter((option) => option.isActive)
         .map((option) => ({
@@ -259,6 +266,7 @@ export function surveyToPayload(survey: SurveyForm) {
         required: question.required,
         isActive: question.isActive,
         settings,
+        validation: normalizeQuestionValidation(question),
         options: isChoiceType(question.inputType)
           ? toPayloadOptions(question.options, survey.replaceQuestions === true)
           : [],
@@ -311,6 +319,7 @@ export function importFormTemplate(
         minValue: question.minValue,
         maxValue: question.maxValue,
         stepValue: question.stepValue,
+        validation: normalizeTemplateValidation(question.validation),
         required: question.required,
         isActive: question.isActive,
         options: isChoiceType(question.inputType)
@@ -347,6 +356,8 @@ export function questionTypePatch(
             ratingOptions: getRatingOptions(),
           }
         : question.settings,
+    validation:
+      inputType === "TEXT" ? normalizeQuestionValidation(question) : {},
   };
 }
 
@@ -487,10 +498,31 @@ function parseTemplateQuestion(value: unknown, field: string) {
     minValue: optionalTemplateStringOrNumber(question.minValue),
     maxValue: optionalTemplateStringOrNumber(question.maxValue),
     stepValue: optionalTemplateStringOrNumber(question.stepValue),
+    validation: normalizeTemplateValidation(question.validation),
     required: optionalTemplateBoolean(question.required, true),
     isActive: optionalTemplateBoolean(question.isActive, true),
     options: parseTemplateOptions(question.options, `${field}.options`),
   };
+}
+
+function normalizeQuestionValidation(
+  question: Pick<SurveyQuestion, "inputType" | "validation">,
+) {
+  if (question.inputType !== "TEXT") {
+    return {};
+  }
+
+  const inputFilter = getTextInputFilter(question.validation);
+
+  return inputFilter === "NONE" ? {} : { inputFilter };
+}
+
+function normalizeTemplateValidation(value: unknown) {
+  const inputFilter = getTextInputFilter(value);
+
+  return inputFilter === "NONE"
+    ? {}
+    : ({ inputFilter } satisfies { inputFilter: TextInputFilter });
 }
 
 function parseTemplateOptions(value: unknown, field: string): SurveyQuestion["options"] {

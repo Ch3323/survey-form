@@ -13,6 +13,7 @@ import {
   SurveyStatus,
 } from "@/lib/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
+import { textInputFilterIsValid } from "@/lib/survey-validation";
 
 type Params = {
   params: Promise<{
@@ -169,7 +170,10 @@ function parseAnswer(question: PublicQuestion, answer: Record<string, unknown>) 
     case SurveyQuestionInputType.TEXTAREA:
     case SurveyQuestionInputType.EMAIL:
     case SurveyQuestionInputType.URL:
-      parsed.textValue = parseText(answer.textValue ?? rawValue, question.title);
+      parsed.textValue = parseText(
+        answer.textValue ?? rawValue,
+        question,
+      );
       break;
     case SurveyQuestionInputType.BOOLEAN:
       parsed.booleanValue = parseBoolean(
@@ -239,16 +243,25 @@ function hasAnswerValue(answer: ParsedAnswer) {
   );
 }
 
-function parseText(value: unknown, field: string) {
+function parseText(value: unknown, question: PublicQuestion) {
   if (value === undefined || value === null || value === "") {
     return undefined;
   }
 
   if (typeof value !== "string") {
-    throw new ApiError(400, `${field} must be text`);
+    throw new ApiError(400, `${question.title} must be text`);
   }
 
-  return value.trim();
+  const text = value.trim();
+
+  if (
+    question.inputType === SurveyQuestionInputType.TEXT &&
+    !textInputFilterIsValid(text, question.validation)
+  ) {
+    throw new ApiError(400, `${question.title} must contain only numbers`);
+  }
+
+  return text;
 }
 
 function parseInteger(value: unknown, field: string) {

@@ -15,6 +15,10 @@ import {
   surveyInclude,
 } from "@/lib/api/survey";
 import { SurveyStatus } from "@/lib/generated/prisma/enums";
+import {
+  getTextInputFilter,
+  type QuestionValidation,
+} from "@/lib/survey-validation";
 
 type SurveyPayload = Record<string, unknown>;
 
@@ -189,6 +193,7 @@ function parseQuestions(value: unknown) {
   return value.map((item, index) => {
     const question = requireObject(item, `questions[${index}]`);
     const id = optionalString(question.id, `questions[${index}].id`);
+    const inputType = parseInputType(question.inputType);
 
     return {
       id,
@@ -196,7 +201,7 @@ function parseQuestions(value: unknown) {
       helpText:
         optionalString(question.helpText, `questions[${index}].helpText`) ??
         null,
-      inputType: parseInputType(question.inputType),
+      inputType,
       sortOrder:
         optionalInteger(question.sortOrder, `questions[${index}].sortOrder`) ??
         index,
@@ -222,7 +227,7 @@ function parseQuestions(value: unknown) {
         optionalNumber(question.stepValue, `questions[${index}].stepValue`) ??
         null,
       settings: optionalJson(question.settings),
-      validation: optionalJson(question.validation),
+      validation: parseQuestionValidation(inputType, question.validation),
       required:
         optionalBoolean(question.required, `questions[${index}].required`) ??
         true,
@@ -235,6 +240,28 @@ function parseQuestions(value: unknown) {
           : parseOptions(question.options, index),
     };
   });
+}
+
+function parseQuestionValidation(
+  inputType: ReturnType<typeof parseInputType>,
+  value: unknown,
+) {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (inputType !== "TEXT") {
+    return {};
+  }
+
+  const inputFilter = getTextInputFilter(value);
+  const validation: QuestionValidation = {};
+
+  if (inputFilter !== "NONE") {
+    validation.inputFilter = inputFilter;
+  }
+
+  return validation;
 }
 
 function parseOptions(value: unknown, questionIndex: number) {

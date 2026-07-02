@@ -1,6 +1,7 @@
 import {
   firstPageNumber,
   groupQuestionsByPage,
+  normalizeAnswerValue,
   questionHasValue,
 } from "./survey-utils";
 import type { AnswerValue, Answers, LoadedSurvey, SurveyQuestion } from "./types";
@@ -103,12 +104,18 @@ function sanitizeAnswers(questions: SurveyQuestion[], answers: Answers) {
   );
 
   return Object.fromEntries(
-    Object.entries(answers).filter(([questionId, answer]) => {
+    Object.entries(answers).flatMap(([questionId, answer]) => {
       const question = questionById.get(questionId);
 
-      return question
-        ? isValidAnswerValue(answer) && questionHasValue(question, answer)
-        : false;
+      if (!question || !isValidAnswerValue(answer)) {
+        return [];
+      }
+
+      const normalizedAnswer = normalizeAnswerValue(question, answer);
+
+      return questionHasValue(question, normalizedAnswer)
+        ? [[questionId, normalizedAnswer]]
+        : [];
     }),
   ) satisfies Answers;
 }
