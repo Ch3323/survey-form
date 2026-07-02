@@ -12,6 +12,10 @@ import {
   SurveyQuestionInputType,
   SurveyStatus,
 } from "@/lib/generated/prisma/enums";
+import {
+  assertJsonRequest,
+  enforceRateLimit,
+} from "@/lib/api/security";
 import { prisma } from "@/lib/prisma";
 import { textInputFilterIsValid } from "@/lib/survey-validation";
 
@@ -39,6 +43,13 @@ type ParsedAnswer = {
 
 export async function POST(request: Request, context: Params) {
   try {
+    enforceRateLimit(request, {
+      key: "survey-submit",
+      limit: 20,
+      windowMs: 10 * 60 * 1000,
+    });
+    assertJsonRequest(request);
+
     const { slug } = await context.params;
     const survey = await getActiveSurvey(slug);
 

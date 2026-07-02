@@ -1,5 +1,6 @@
 import { jsonError } from "@/lib/api/survey";
 import { requireAdmin } from "@/lib/admin-auth";
+import { enforceRateLimit, requireUuid } from "@/lib/api/security";
 import { prisma } from "@/lib/prisma";
 
 type Params = {
@@ -11,12 +12,18 @@ type Params = {
 export async function DELETE(request: Request, context: Params) {
   try {
     await requireAdmin(request.headers);
+    enforceRateLimit(request, {
+      key: "admin-answer-delete",
+      limit: 60,
+      windowMs: 60 * 1000,
+    });
 
     const { id } = await context.params;
+    const answerId = requireUuid(id);
 
     await prisma.$transaction(async (tx) => {
       const answer = await tx.surveyAnswer.delete({
-        where: { id },
+        where: { id: answerId },
         select: {
           responseId: true,
         },

@@ -1,5 +1,6 @@
 import { jsonError, jsonOk, responseInclude, serialize } from "@/lib/api/survey";
 import { requireAdmin } from "@/lib/admin-auth";
+import { enforceRateLimit, requireUuid } from "@/lib/api/security";
 import { prisma } from "@/lib/prisma";
 
 type Params = {
@@ -13,8 +14,9 @@ export async function GET(request: Request, context: Params) {
     await requireAdmin(request.headers);
 
     const { id } = await context.params;
+    const surveyId = requireUuid(id);
     const responses = await prisma.surveyResponse.findMany({
-      where: { surveyId: id },
+      where: { surveyId },
       orderBy: { submittedAt: "desc" },
       include: responseInclude,
     });
@@ -28,10 +30,16 @@ export async function GET(request: Request, context: Params) {
 export async function DELETE(request: Request, context: Params) {
   try {
     await requireAdmin(request.headers);
+    enforceRateLimit(request, {
+      key: "admin-responses-clear",
+      limit: 10,
+      windowMs: 60 * 1000,
+    });
 
     const { id } = await context.params;
+    const surveyId = requireUuid(id);
     const result = await prisma.surveyResponse.deleteMany({
-      where: { surveyId: id },
+      where: { surveyId },
     });
 
     return jsonOk({ deletedCount: result.count });

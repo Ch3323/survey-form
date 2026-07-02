@@ -6,6 +6,7 @@ import {
   serialize,
 } from "@/lib/api/survey";
 import { requireAdmin } from "@/lib/admin-auth";
+import { optionalUuid } from "@/lib/api/security";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request) {
@@ -13,7 +14,10 @@ export async function GET(request: Request) {
     await requireAdmin(request.headers);
 
     const { searchParams } = new URL(request.url);
-    const surveyId = optionalString(searchParams.get("surveyId"), "surveyId");
+    const surveyId = optionalUuid(
+      optionalString(searchParams.get("surveyId"), "surveyId"),
+      "surveyId",
+    );
     const surveySlug = optionalString(
       searchParams.get("surveySlug"),
       "surveySlug",
