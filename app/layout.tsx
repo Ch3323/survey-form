@@ -27,7 +27,7 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: "Coding Survey",
-  description: "แบบประเมินความเข้าใจ Coding พร้อมหน้า admin",
+  description: "แบบประเมินความเข้าใจ Coding สำหรับกิจกรรม ACS FirstMeet",
 };
 
 export default function RootLayout({
