@@ -11,6 +11,10 @@ import {
   serialize,
 } from "@/lib/api/survey";
 import { requireAdmin } from "@/lib/admin-auth";
+import {
+  assertJsonRequest,
+  enforceRateLimit,
+} from "@/lib/api/security";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request) {
@@ -49,6 +53,12 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     await requireAdmin(request.headers);
+    enforceRateLimit(request, {
+      key: "admin-survey-create",
+      limit: 30,
+      windowMs: 60 * 1000,
+    });
+    assertJsonRequest(request);
 
     const existingSurveyCount = await prisma.survey.count();
 

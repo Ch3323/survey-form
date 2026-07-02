@@ -6,6 +6,7 @@ import {
   serialize,
 } from "@/lib/api/survey";
 import { requireAdmin } from "@/lib/admin-auth";
+import { enforceRateLimit, requireUuid } from "@/lib/api/security";
 import { prisma } from "@/lib/prisma";
 
 type Params = {
@@ -19,8 +20,9 @@ export async function GET(request: Request, context: Params) {
     await requireAdmin(request.headers);
 
     const { id } = await context.params;
+    const responseId = requireUuid(id);
     const response = await prisma.surveyResponse.findUnique({
-      where: { id },
+      where: { id: responseId },
       include: responseInclude,
     });
 
@@ -37,10 +39,16 @@ export async function GET(request: Request, context: Params) {
 export async function DELETE(request: Request, context: Params) {
   try {
     await requireAdmin(request.headers);
+    enforceRateLimit(request, {
+      key: "admin-response-delete",
+      limit: 60,
+      windowMs: 60 * 1000,
+    });
 
     const { id } = await context.params;
+    const responseId = requireUuid(id);
     await prisma.surveyResponse.delete({
-      where: { id },
+      where: { id: responseId },
     });
 
     return new Response(null, { status: 204 });
