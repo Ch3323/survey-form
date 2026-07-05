@@ -469,6 +469,8 @@ export function AdminDashboard({ adminName }: AdminDashboardProps) {
                 responses={responses}
                 selectedResponse={selectedResponse}
                 selectedResponseId={selectedResponseId}
+                surveyId={survey.id}
+                surveyQuestions={survey.questions}
                 onClearResponses={clearResponses}
                 onDeleteResponse={deleteResponse}
                 onSelectResponse={setSelectedResponseId}
