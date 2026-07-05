@@ -128,6 +128,11 @@ export type SurveyResponse = {
   submittedAt: string;
   answers: Array<{
     id: string;
+    questionId: string;
+    question?: {
+      id: string;
+      sortOrder: number;
+    };
     questionTitleSnapshot: string;
     questionInputType: InputType;
     score?: number | null;
