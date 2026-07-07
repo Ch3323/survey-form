@@ -44,12 +44,14 @@ export function createQuestion(
         {
           label: "Option 1",
           value: "option-1",
+          score: "0",
           sortOrder: 0,
           isActive: true,
         },
         {
           label: "Option 2",
           value: "option-2",
+          score: "0",
           sortOrder: 1,
           isActive: true,
         },
@@ -212,6 +214,7 @@ export function surveyToForm(survey: LoadedSurvey): SurveyForm {
           id: option.id,
           label: option.label,
           value: option.value,
+          score: String(option.score ?? 0),
           sortOrder: option.sortOrder,
           isActive: option.isActive,
         })),
@@ -362,6 +365,10 @@ export function questionTypePatch(
 }
 
 export function formatAnswer(answer: SurveyResponse["answers"][number]) {
+  if (answer.selectedOptions.length > 0) {
+    return answer.selectedOptions.map((item) => item.option.label).join(", ");
+  }
+
   if (answer.score !== null && answer.score !== undefined) {
     return String(answer.score);
   }
@@ -380,10 +387,6 @@ export function formatAnswer(answer: SurveyResponse["answers"][number]) {
 
   if (answer.dateValue) {
     return new Date(answer.dateValue).toLocaleDateString();
-  }
-
-  if (answer.selectedOptions.length > 0) {
-    return answer.selectedOptions.map((item) => item.option.label).join(", ");
   }
 
   return "-";
@@ -541,6 +544,7 @@ function parseTemplateOptions(value: unknown, field: string): SurveyQuestion["op
     return {
       label,
       value: optionalTemplateString(option.value) || slugify(label),
+      score: optionalTemplateInteger(option.score, 0),
       sortOrder: index,
       isActive: optionalTemplateBoolean(option.isActive, true),
     };
@@ -598,6 +602,16 @@ function optionalTemplateBoolean(value: unknown, fallback: boolean) {
   return typeof value === "boolean" ? value : fallback;
 }
 
+function optionalTemplateInteger(value: unknown, fallback: number) {
+  if (value === null || value === undefined || value === "") {
+    return String(fallback);
+  }
+
+  const numberValue = Number(value);
+
+  return Number.isInteger(numberValue) ? String(numberValue) : String(fallback);
+}
+
 function toPayloadOptions(
   options: SurveyQuestion["options"],
   clearIds: boolean,
@@ -609,6 +623,7 @@ function toPayloadOptions(
       id: clearIds ? undefined : option.id,
       label: option.label,
       value: fallbackValue,
+      score: option.score === "" ? 0 : Number(option.score),
       sortOrder: optionIndex,
       isActive: option.isActive,
     };

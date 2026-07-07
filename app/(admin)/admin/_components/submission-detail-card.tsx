@@ -80,6 +80,9 @@ function SubmissionAnswerList({ response }: { response: SurveyResponse }) {
             <Badge variant="secondary">
               {typeLabel(answer.questionInputType)}
             </Badge>
+            {answer.score !== null && answer.score !== undefined ? (
+              <Badge variant="outline">Score {Number(answer.score)}</Badge>
+            ) : null}
           </div>
           <p className="mt-2 text-sm text-muted-foreground">
             {formatAnswer(answer)}

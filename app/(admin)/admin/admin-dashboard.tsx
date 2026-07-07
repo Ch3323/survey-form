@@ -264,6 +264,7 @@ export function AdminDashboard({ adminName }: AdminDashboardProps) {
             {
               label: `Option ${nextIndex}`,
               value: `option-${nextIndex}`,
+              score: "0",
               sortOrder: question.options.length,
               isActive: true,
             },

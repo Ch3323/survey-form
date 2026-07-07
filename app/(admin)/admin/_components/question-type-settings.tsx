@@ -248,9 +248,15 @@ export function QuestionTypeSettings({
             {question.options.map((option, optionIndex) => (
               <div
                 key={`${option.id ?? "new"}-${optionIndex}`}
-                className="grid gap-2 sm:grid-cols-[1fr_auto]"
+                className="grid gap-2 sm:grid-cols-[1fr_120px_auto]"
               >
                 <div className="grid gap-1.5">
+                  <Label
+                    className="sr-only"
+                    htmlFor={`${question.clientId}-${optionIndex}-label`}
+                  >
+                    Option {optionIndex + 1} display text
+                  </Label>
                   <Input
                     id={`${question.clientId}-${optionIndex}-label`}
                     aria-label={`Option ${optionIndex + 1} display text`}
@@ -258,6 +264,27 @@ export function QuestionTypeSettings({
                     onChange={(event) =>
                       onUpdateOption(question.clientId, optionIndex, {
                         label: event.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label
+                    className="sr-only"
+                    htmlFor={`${question.clientId}-${optionIndex}-score`}
+                  >
+                    Option {optionIndex + 1} score
+                  </Label>
+                  <Input
+                    id={`${question.clientId}-${optionIndex}-score`}
+                    type="number"
+                    step={1}
+                    aria-label={`Option ${optionIndex + 1} score`}
+                    value={option.score}
+                    placeholder="Score"
+                    onChange={(event) =>
+                      onUpdateOption(question.clientId, optionIndex, {
+                        score: event.target.value,
                       })
                     }
                   />

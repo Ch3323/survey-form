@@ -298,6 +298,11 @@ function parseOptions(value: unknown, questionIndex: number) {
           option.sortOrder,
           `questions[${questionIndex}].options[${index}].sortOrder`,
         ) ?? index,
+      score:
+        optionalInteger(
+          option.score,
+          `questions[${questionIndex}].options[${index}].score`,
+        ) ?? 0,
       isActive:
         optionalBoolean(
           option.isActive,
@@ -328,6 +333,7 @@ function questionToCreateData(question: ReturnType<typeof parseQuestions>[number
           create: question.options.map((option) => ({
             label: option.label,
             value: option.value,
+            score: option.score,
             sortOrder: option.sortOrder,
             isActive: option.isActive,
           })),
@@ -379,6 +385,7 @@ async function upsertOptions(
         data: {
           label: option.label,
           value: option.value,
+          score: option.score,
           sortOrder: option.sortOrder,
           isActive: option.isActive,
         },
@@ -389,6 +396,7 @@ async function upsertOptions(
           question: { connect: { id: questionId } },
           label: option.label,
           value: option.value,
+          score: option.score,
           sortOrder: option.sortOrder,
           isActive: option.isActive,
         },

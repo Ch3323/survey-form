@@ -187,6 +187,10 @@ function formatAnswer(answer: ExportAnswer | undefined) {
     return "";
   }
 
+  if (answer.selectedOptions.length > 0) {
+    return answer.selectedOptions.map((item) => item.option.label).join(", ");
+  }
+
   if (answer.score !== null && answer.score !== undefined) {
     return String(answer.score);
   }
@@ -205,10 +209,6 @@ function formatAnswer(answer: ExportAnswer | undefined) {
 
   if (answer.dateValue) {
     return formatDate(answer.dateValue);
-  }
-
-  if (answer.selectedOptions.length > 0) {
-    return answer.selectedOptions.map((item) => item.option.label).join(", ");
   }
 
   return "";
