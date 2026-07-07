@@ -32,10 +32,12 @@
           "required": true,
           "options": [
             {
-              "label": "Option A"
+              "label": "Option A",
+              "score": 1
             },
             {
-              "label": "Option B"
+              "label": "Option B",
+              "score": 0
             }
           ]
         }
