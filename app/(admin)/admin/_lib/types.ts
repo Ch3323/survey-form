@@ -33,6 +33,7 @@ export type SurveyOption = {
   id?: string;
   label: string;
   value: string;
+  score: string;
   sortOrder: number;
   isActive: boolean;
 };
@@ -104,6 +105,7 @@ export type LoadedSurvey = {
       id: string;
       label: string;
       value: string;
+      score: number | string;
       sortOrder: number;
       isActive: boolean;
     }>;
@@ -144,6 +146,7 @@ export type SurveyResponse = {
       option: {
         label: string;
         value: string;
+        score?: number | string;
       };
     }>;
   }>;

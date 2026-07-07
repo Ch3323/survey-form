@@ -81,6 +81,7 @@ model SurveyQuestionOption {
   question   SurveyQuestion       @relation(fields: [questionId], references: [id], onDelete: Cascade)
   label      String
   value      String               @db.VarChar(160)
+  score      Int                  @default(0)
   sortOrder  Int                  @default(0)
   isActive   Boolean              @default(true)
   answers    SurveyAnswerOption[]
@@ -98,7 +99,7 @@ model SurveyResponse {
   survey       Survey         @relation(fields: [surveyId], references: [id], onDelete: Cascade)
   anonymousKey String?        @db.VarChar(120)
   totalScore   Int            @default(0)
-  averageScore Decimal        @default(0) @db.Decimal(4, 2)
+  averageScore Decimal        @default(0) @db.Decimal(12, 2)
   answers      SurveyAnswer[]
   submittedAt  DateTime       @default(now())
   createdAt    DateTime       @default(now())

@@ -3,9 +3,9 @@ import {
   jsonError,
   jsonOk,
   optionalString,
-  publicSurveyInclude,
   readJson,
   requireObject,
+  scoringSurveyInclude,
   serialize,
 } from "@/lib/api/survey";
 import {
@@ -39,6 +39,11 @@ type ParsedAnswer = {
   numberValue?: number;
   dateValue?: Date;
   selectedOptionIds: string[];
+};
+
+type ParsedSelectedOption = {
+  id: string;
+  score: number;
 };
 
 export async function POST(request: Request, context: Params) {
@@ -112,7 +117,7 @@ export async function POST(request: Request, context: Params) {
 function getActiveSurvey(slug: string) {
   return prisma.survey.findUnique({
     where: { slug },
-    include: publicSurveyInclude,
+    include: scoringSurveyInclude,
   });
 }
 
@@ -202,21 +207,41 @@ function parseAnswer(question: PublicQuestion, answer: Record<string, unknown>) 
       parsed.dateValue = parseDate(answer.dateValue ?? rawValue, question.title);
       break;
     case SurveyQuestionInputType.SINGLE_CHOICE:
-      parsed.selectedOptionIds = parseSelectedOptions(question, answer, false);
+      applySelectedOptionsScore(
+        parsed,
+        parseSelectedOptions(question, answer, false),
+      );
       break;
     case SurveyQuestionInputType.MULTIPLE_CHOICE:
-      parsed.selectedOptionIds = parseSelectedOptions(question, answer, true);
+      applySelectedOptionsScore(
+        parsed,
+        parseSelectedOptions(question, answer, true),
+      );
       break;
   }
 
   return parsed;
 }
 
+function applySelectedOptionsScore(
+  parsed: ParsedAnswer,
+  selectedOptions: ParsedSelectedOption[],
+) {
+  parsed.selectedOptionIds = selectedOptions.map((option) => option.id);
+
+  if (selectedOptions.length > 0) {
+    parsed.score = selectedOptions.reduce(
+      (total, option) => total + option.score,
+      0,
+    );
+  }
+}
+
 function parseSelectedOptions(
   question: PublicQuestion,
   answer: Record<string, unknown>,
   allowMany: boolean,
-) {
+): ParsedSelectedOption[] {
   const raw =
     answer.selectedOptionIds ?? answer.selectedOptionId ?? answer.value ?? [];
   const values = Array.isArray(raw) ? raw : [raw];
@@ -232,9 +257,15 @@ function parseSelectedOptions(
         throw new ApiError(400, `${question.title} has an invalid option`);
       }
 
-      return option.id;
+      return {
+        id: option.id,
+        score: option.score,
+      };
     })
-    .filter((value, index, all) => all.indexOf(value) === index);
+    .filter(
+      (value, index, all) =>
+        all.findIndex((item) => item.id === value.id) === index,
+    );
 
   if (!allowMany && optionIds.length > 1) {
     throw new ApiError(400, `${question.title} allows only one option`);

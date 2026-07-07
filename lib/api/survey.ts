@@ -27,6 +27,28 @@ export const publicSurveyInclude = {
       options: {
         where: { isActive: true },
         orderBy: { sortOrder: "asc" as const },
+        select: {
+          id: true,
+          label: true,
+          value: true,
+        },
+      },
+    },
+  },
+};
+
+export const scoringSurveyInclude = {
+  questions: {
+    where: { isActive: true },
+    orderBy: { sortOrder: "asc" as const },
+    include: {
+      options: {
+        where: { isActive: true },
+        orderBy: { sortOrder: "asc" as const },
+        select: {
+          id: true,
+          score: true,
+        },
       },
     },
   },
@@ -56,6 +78,7 @@ export const responseInclude = {
               id: true,
               label: true,
               value: true,
+              score: true,
             },
           },
         },
