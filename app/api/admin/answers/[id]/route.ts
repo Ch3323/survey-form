@@ -39,7 +39,7 @@ export async function DELETE(request: Request, context: Params) {
         },
       });
       const totalScore = remainingAnswers.reduce(
-        (total, item) => total + (item.score ?? 0),
+        (total, item) => total + Number(item.score ?? 0),
         0,
       );
       const averageScore =
@@ -59,7 +59,7 @@ export async function DELETE(request: Request, context: Params) {
       });
       const { correctnessPercentage, assessmentLevel } = summarizeAssessment({
         totalScore,
-        maxScore: response.maxScore,
+        maxScore: Number(response.maxScore),
         correctnessThreshold: response.survey.correctnessThreshold,
       });
 

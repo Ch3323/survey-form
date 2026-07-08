@@ -104,8 +104,8 @@ model SurveyResponse {
   surveyId              String          @db.Uuid
   survey                Survey          @relation(fields: [surveyId], references: [id], onDelete: Cascade)
   anonymousKey          String?         @db.VarChar(120)
-  totalScore            Int             @default(0)
-  maxScore              Int             @default(0)
+  totalScore            Decimal         @default(0) @db.Decimal(12, 2)
+  maxScore              Decimal         @default(0) @db.Decimal(12, 2)
   averageScore          Decimal         @default(0) @db.Decimal(12, 2)
   correctnessPercentage Decimal         @default(0) @db.Decimal(5, 2)
   assessmentLevel       AssessmentLevel @default(BEGINNER)
@@ -126,7 +126,7 @@ model SurveyAnswer {
   question              SurveyQuestion          @relation(fields: [questionId], references: [id], onDelete: Restrict)
   questionTitleSnapshot String
   questionInputType     SurveyQuestionInputType
-  score                 Int?
+  score                 Decimal?                @db.Decimal(12, 2)
   textValue             String?
   booleanValue          Boolean?
   numberValue           Decimal?                @db.Decimal(12, 2)

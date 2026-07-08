@@ -20,6 +20,7 @@ import {
 import { Plus, Trash2 } from "lucide-react";
 import {
   getRatingOptions,
+  ratingMaxScoreInputValue,
   textPlaceholder,
 } from "../_lib/survey-form-utils";
 import type { SurveyOption, SurveyQuestion } from "../_lib/types";
@@ -70,6 +71,29 @@ export function QuestionTypeSettings({
               <span>น้อย</span>
               <span>มาก</span>
             </div>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor={`${question.clientId}-rating-max-score`}>
+              Max score
+            </Label>
+            <Input
+              id={`${question.clientId}-rating-max-score`}
+              type="number"
+              min={0}
+              step={0.01}
+              value={ratingMaxScoreInputValue(question.settings)}
+              onChange={(event) =>
+                updateQuestion({
+                  settings: {
+                    ...question.settings,
+                    ratingMaxScore: event.target.value,
+                  },
+                })
+              }
+            />
+            <p className="text-xs text-muted-foreground">
+              Rating answers are scaled from 1-5 into this max score.
+            </p>
           </div>
         </div>
       );

@@ -10,6 +10,7 @@ type ScoringQuestion = {
 };
 
 const DEFAULT_CORRECTNESS_THRESHOLD = 70;
+const DEFAULT_RATING_MAX_SCORE = 5;
 
 export function normalizeCorrectnessThreshold(value: number | undefined) {
   if (value === undefined) {
@@ -24,6 +25,43 @@ export function maxScoreForQuestions(questions: ScoringQuestion[]) {
     (total, question) => total + maxScoreForQuestion(question),
     0,
   );
+}
+
+export function scoreRatingAnswer(
+  question: Pick<ScoringQuestion, "settings">,
+  selectedScore: number,
+) {
+  const scaleMax = ratingScaleMax(question.settings);
+  const maxScore = ratingMaxScore(question.settings);
+
+  if (scaleMax <= 0 || maxScore <= 0) {
+    return 0;
+  }
+
+  return roundScore((selectedScore / scaleMax) * maxScore);
+}
+
+export function ratingScaleMax(settings: unknown) {
+  const ratingOptions = isRecord(settings) ? settings.ratingOptions : undefined;
+
+  if (!Array.isArray(ratingOptions)) {
+    return DEFAULT_RATING_MAX_SCORE;
+  }
+
+  const scores = ratingOptions
+    .map((option) => {
+      if (!isRecord(option)) {
+        return undefined;
+      }
+
+      const value = option.value;
+      const score = typeof value === "number" ? value : Number(value);
+
+      return Number.isFinite(score) ? score : undefined;
+    })
+    .filter((score): score is number => score !== undefined);
+
+  return scores.length > 0 ? Math.max(0, ...scores) : DEFAULT_RATING_MAX_SCORE;
 }
 
 export function summarizeAssessment({
@@ -51,7 +89,7 @@ export function summarizeAssessment({
 function maxScoreForQuestion(question: ScoringQuestion) {
   switch (question.inputType) {
     case SurveyQuestionInputType.RATING:
-      return maxRatingScore(question.settings);
+      return ratingMaxScore(question.settings);
     case SurveyQuestionInputType.SINGLE_CHOICE:
       return Math.max(0, ...scoreValues(question.options));
     case SurveyQuestionInputType.MULTIPLE_CHOICE:
@@ -64,27 +102,15 @@ function maxScoreForQuestion(question: ScoringQuestion) {
   }
 }
 
-function maxRatingScore(settings: unknown) {
-  const ratingOptions = isRecord(settings) ? settings.ratingOptions : undefined;
+function ratingMaxScore(settings: unknown) {
+  const value = isRecord(settings) ? settings.ratingMaxScore : undefined;
+  const maxScore = typeof value === "number" ? value : Number(value);
 
-  if (!Array.isArray(ratingOptions)) {
-    return 5;
+  if (!Number.isFinite(maxScore)) {
+    return DEFAULT_RATING_MAX_SCORE;
   }
 
-  const scores = ratingOptions
-    .map((option) => {
-      if (!isRecord(option)) {
-        return undefined;
-      }
-
-      const value = option.value;
-      const score = typeof value === "number" ? value : Number(value);
-
-      return Number.isFinite(score) ? score : undefined;
-    })
-    .filter((score): score is number => score !== undefined);
-
-  return scores.length > 0 ? Math.max(0, ...scores) : 5;
+  return Math.max(0, maxScore);
 }
 
 function scoreValues(options: ScoringQuestion["options"] = []) {
@@ -97,4 +123,8 @@ function roundPercentage(value: number) {
   const clamped = Math.min(100, Math.max(0, value));
 
   return Math.round(clamped * 100) / 100;
+}
+
+function roundScore(value: number) {
+  return Math.round(value * 100) / 100;
 }

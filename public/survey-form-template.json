@@ -9,6 +9,7 @@
           "title": "How satisfied are you?",
           "helpText": "",
           "inputType": "RATING",
+          "ratingMaxScore": 10,
           "required": true
         },
         {

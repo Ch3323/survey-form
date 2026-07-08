@@ -14,6 +14,8 @@ import {
 } from "@/lib/generated/prisma/enums";
 import {
   maxScoreForQuestions,
+  ratingScaleMax,
+  scoreRatingAnswer,
   summarizeAssessment,
 } from "@/lib/api/survey-scoring";
 import {
@@ -196,7 +198,7 @@ function parseAnswer(question: PublicQuestion, answer: Record<string, unknown>) 
 
   switch (question.inputType) {
     case SurveyQuestionInputType.RATING:
-      parsed.score = parseInteger(answer.score ?? rawValue, question.title);
+      parsed.score = parseRatingScore(question, answer.score ?? rawValue);
       break;
     case SurveyQuestionInputType.TEXT:
     case SurveyQuestionInputType.TEXTAREA:
@@ -320,6 +322,25 @@ function parseText(value: unknown, question: PublicQuestion) {
   }
 
   return text;
+}
+
+function parseRatingScore(question: PublicQuestion, value: unknown) {
+  const selectedScore = parseInteger(value, question.title);
+
+  if (selectedScore === undefined) {
+    return undefined;
+  }
+
+  const scaleMax = ratingScaleMax(question.settings);
+
+  if (selectedScore < 1 || selectedScore > scaleMax) {
+    throw new ApiError(
+      400,
+      `${question.title} must be a rating from 1 to ${scaleMax}`,
+    );
+  }
+
+  return scoreRatingAnswer(question, selectedScore);
 }
 
 function parseInteger(value: unknown, field: string) {

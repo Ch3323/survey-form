@@ -15,6 +15,7 @@ import type { SurveyResponse } from "../_lib/types";
 import {
   assessmentLevelLabel,
   formatAnswer,
+  formatScore,
   typeLabel,
 } from "../_lib/survey-form-utils";
 import { Stat } from "./stat";
@@ -70,8 +71,8 @@ function SubmissionScoreSummary({ response }: { response: SurveyResponse }) {
         label="Correctness"
         value={`${Number(response.correctnessPercentage).toFixed(1)}%`}
       />
-      <Stat label="Total score" value={Number(response.totalScore).toFixed(0)} />
-      <Stat label="Max score" value={Number(response.maxScore).toFixed(0)} />
+      <Stat label="Total score" value={formatScore(response.totalScore)} />
+      <Stat label="Max score" value={formatScore(response.maxScore)} />
       <Stat label="Average" value={Number(response.averageScore).toFixed(1)} />
     </div>
   );
@@ -91,7 +92,7 @@ function SubmissionAnswerList({ response }: { response: SurveyResponse }) {
               {typeLabel(answer.questionInputType)}
             </Badge>
             {answer.score !== null && answer.score !== undefined ? (
-              <Badge variant="outline">Score {Number(answer.score)}</Badge>
+              <Badge variant="outline">Score {formatScore(answer.score)}</Badge>
             ) : null}
           </div>
           <p className="mt-2 text-sm text-muted-foreground">
