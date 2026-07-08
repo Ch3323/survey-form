@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import type { SurveyQuestion, SurveyResponse } from "../_lib/types";
 import { SubmissionDetailCard } from "./submission-detail-card";
 import { SubmissionList } from "./submission-list";
+import { SubmissionOverview } from "./submission-overview";
 
 type SubmissionViewProps = {
   clearingResponses: boolean;
@@ -32,30 +33,40 @@ export function SubmissionView({
 }: SubmissionViewProps) {
   if (responses.length === 0) {
     return (
-      <Card className="rounded-xl">
-        <CardContent className="py-8 text-center text-sm text-muted-foreground">
-          No submissions yet.
-        </CardContent>
-      </Card>
+      <div className="flex flex-col gap-4">
+        <SubmissionOverview
+          responses={responses}
+        />
+        <Card className="rounded-xl">
+          <CardContent className="py-8 text-center text-sm text-muted-foreground">
+            No submissions yet.
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <div className="grid gap-4 xl:grid-cols-[360px_1fr]">
-      <SubmissionList
-        clearingResponses={clearingResponses}
+    <div className="flex flex-col gap-4">
+      <SubmissionOverview
         responses={responses}
-        selectedResponseId={selectedResponseId}
-        surveyId={surveyId}
-        surveyQuestions={surveyQuestions}
-        onClearResponses={onClearResponses}
-        onSelectResponse={onSelectResponse}
       />
-      <SubmissionDetailCard
-        deletingResponseId={deletingResponseId}
-        selectedResponse={selectedResponse}
-        onDeleteResponse={onDeleteResponse}
-      />
+      <div className="grid gap-4 xl:grid-cols-[360px_1fr]">
+        <SubmissionList
+          clearingResponses={clearingResponses}
+          responses={responses}
+          selectedResponseId={selectedResponseId}
+          surveyId={surveyId}
+          surveyQuestions={surveyQuestions}
+          onClearResponses={onClearResponses}
+          onSelectResponse={onSelectResponse}
+        />
+        <SubmissionDetailCard
+          deletingResponseId={deletingResponseId}
+          selectedResponse={selectedResponse}
+          onDeleteResponse={onDeleteResponse}
+        />
+      </div>
     </div>
   );
 }

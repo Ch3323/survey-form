@@ -19,6 +19,7 @@ import {
   typeLabel,
 } from "../_lib/survey-form-utils";
 import { Stat } from "./stat";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 type SubmissionDetailCardProps = {
   deletingResponseId: string;
@@ -73,14 +74,13 @@ function SubmissionScoreSummary({ response }: { response: SurveyResponse }) {
       />
       <Stat label="Total score" value={formatScore(response.totalScore)} />
       <Stat label="Max score" value={formatScore(response.maxScore)} />
-      <Stat label="Average" value={Number(response.averageScore).toFixed(1)} />
     </div>
   );
 }
 
 function SubmissionAnswerList({ response }: { response: SurveyResponse }) {
   return (
-    <div className="grid gap-3">
+    <div className="grid gap-3 max-h-96 overflow-y-scroll scrollbar-none scroll-smooth">
       {response.answers.map((answer) => (
         <div
           key={answer.id}
@@ -112,16 +112,39 @@ function DeleteSubmissionAction({
   onDelete: () => void;
 }) {
   return (
-    <div className="flex justify-end border-t border-border pt-4">
-      <Button
-        type="button"
-        variant="destructive"
-        onClick={onDelete}
-        disabled={deleting}
-      >
-        {deleting ? <Spinner /> : <Trash2 />}
-        Delete submission
-      </Button>
-    </div>
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button
+          type="button"
+          variant="destructive"
+          size="sm"
+          disabled={deleting}
+        >
+          {deleting ? <Spinner /> : <Trash2 />}
+          Delete
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete submissions?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This will permanently delete this submission and answers. This action cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={deleting}>
+            Cancel
+          </AlertDialogCancel>
+          <AlertDialogAction
+            variant="destructive"
+            onClick={onDelete}
+            disabled={deleting}
+          >
+            {deleting ? <Spinner /> : <Trash2 />}
+            Delete
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
