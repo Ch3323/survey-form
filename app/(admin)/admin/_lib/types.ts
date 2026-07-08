@@ -75,6 +75,7 @@ export type SurveyForm = {
   title: string;
   description: string;
   status: SurveyMode;
+  correctnessThreshold: string;
   replaceQuestions?: boolean;
   sections: SectionMeta[];
   questions: SurveyQuestion[];
@@ -86,6 +87,7 @@ export type LoadedSurvey = {
   title: string;
   description?: string | null;
   status: SurveyStatus;
+  correctnessThreshold?: number | string | null;
   questions: Array<{
     id: string;
     title: string;
@@ -126,7 +128,10 @@ export type AdminSurveyListItem = {
 export type SurveyResponse = {
   id: string;
   totalScore: number | string;
+  maxScore: number | string;
   averageScore: number | string;
+  correctnessPercentage: number | string;
+  assessmentLevel: "BEGINNER" | "ADVANCED";
   submittedAt: string;
   answers: Array<{
     id: string;

@@ -50,11 +50,15 @@ export function SurveyUnavailable({
 }
 
 export function SurveySubmitted({
+  assessmentLevel,
   averageScore,
+  correctnessPercentage,
   responseId,
   onReset,
 }: {
+  assessmentLevel: "BEGINNER" | "ADVANCED" | null;
   averageScore: number | null;
+  correctnessPercentage: number | null;
   responseId: string;
   onReset: () => void;
 }) {
@@ -75,6 +79,22 @@ export function SurveySubmitted({
           </div>
         </CardHeader>
         <CardContent className="grid gap-4">
+          {assessmentLevel ? (
+            <div className="rounded-xl border border-border bg-secondary/50 p-4">
+              <p className="text-sm text-muted-foreground">Assessment level</p>
+              <p className="mt-1 text-3xl font-semibold">
+                {assessmentLevel === "ADVANCED" ? "Advance" : "Beginner"}
+              </p>
+            </div>
+          ) : null}
+          {correctnessPercentage !== null ? (
+            <div className="rounded-xl border border-border bg-secondary/50 p-4">
+              <p className="text-sm text-muted-foreground">Correctness</p>
+              <p className="mt-1 text-3xl font-semibold">
+                {correctnessPercentage.toFixed(1)}%
+              </p>
+            </div>
+          ) : null}
           {averageScore !== null ? (
             <div className="rounded-xl border border-border bg-secondary/50 p-4">
               <p className="text-sm text-muted-foreground">Average score</p>

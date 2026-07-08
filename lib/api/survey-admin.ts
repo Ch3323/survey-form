@@ -36,6 +36,10 @@ export function parseSurveyCreatePayload(value: unknown) {
     title,
     description: optionalString(body.description, "description"),
     status: parseStatus(body.status, SurveyStatus.DRAFT),
+    correctnessThreshold: parseCorrectnessThreshold(
+      body.correctnessThreshold,
+      70,
+    ),
     questions: parseQuestions(body.questions),
   };
 }
@@ -61,6 +65,12 @@ export function parseSurveyUpdatePayload(value: unknown) {
     data.status = parseStatus(body.status);
   }
 
+  if (body.correctnessThreshold !== undefined) {
+    data.correctnessThreshold = parseCorrectnessThreshold(
+      body.correctnessThreshold,
+    );
+  }
+
   return {
     data,
     replaceQuestions:
@@ -79,6 +89,7 @@ export async function createSurveyWithQuestions(
       title: payload.title,
       description: payload.description,
       status: payload.status,
+      correctnessThreshold: payload.correctnessThreshold,
       questions: {
         create: payload.questions.map((question) => questionToCreateData(question)),
       },
@@ -240,6 +251,20 @@ function parseQuestions(value: unknown) {
           : parseOptions(question.options, index),
     };
   });
+}
+
+function parseCorrectnessThreshold(value: unknown, fallback?: number) {
+  const threshold = optionalInteger(value, "correctnessThreshold") ?? fallback;
+
+  if (threshold === undefined) {
+    return undefined;
+  }
+
+  if (threshold < 0 || threshold > 100) {
+    throw new ApiError(400, "correctnessThreshold must be between 0 and 100");
+  }
+
+  return threshold;
 }
 
 function parseQuestionValidation(

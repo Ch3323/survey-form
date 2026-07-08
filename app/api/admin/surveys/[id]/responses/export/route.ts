@@ -39,7 +39,10 @@ export async function GET(request: Request, context: Params) {
             id: true,
             anonymousKey: true,
             totalScore: true,
+            maxScore: true,
             averageScore: true,
+            correctnessPercentage: true,
+            assessmentLevel: true,
             submittedAt: true,
             answers: {
               orderBy: { createdAt: "asc" },

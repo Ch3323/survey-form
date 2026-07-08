@@ -13,6 +13,10 @@ import {
   SurveyStatus,
 } from "@/lib/generated/prisma/enums";
 import {
+  maxScoreForQuestions,
+  summarizeAssessment,
+} from "@/lib/api/survey-scoring";
+import {
   assertJsonRequest,
   enforceRateLimit,
 } from "@/lib/api/security";
@@ -71,6 +75,12 @@ export async function POST(request: Request, context: Params) {
     );
     const averageScore =
       scoredAnswers.length > 0 ? totalScore / scoredAnswers.length : 0;
+    const maxScore = maxScoreForQuestions(survey.questions);
+    const { correctnessPercentage, assessmentLevel } = summarizeAssessment({
+      totalScore,
+      maxScore,
+      correctnessThreshold: survey.correctnessThreshold,
+    });
 
     const response = await prisma.surveyResponse.create({
       data: {
@@ -78,7 +88,10 @@ export async function POST(request: Request, context: Params) {
         anonymousKey:
           optionalString(body.anonymousKey, "anonymousKey", 120) ?? null,
         totalScore,
+        maxScore,
         averageScore,
+        correctnessPercentage,
+        assessmentLevel,
         answers: {
           create: answers.map((answer) => ({
             question: { connect: { id: answer.question.id } },
@@ -103,7 +116,10 @@ export async function POST(request: Request, context: Params) {
       select: {
         id: true,
         totalScore: true,
+        maxScore: true,
         averageScore: true,
+        correctnessPercentage: true,
+        assessmentLevel: true,
         submittedAt: true,
       },
     });

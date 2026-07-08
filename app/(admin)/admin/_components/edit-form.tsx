@@ -134,6 +134,29 @@ export function EditForm({
           </Select>
         </div>
         <div className="grid gap-2 sm:col-span-2">
+          <Label htmlFor="survey-correctness-threshold">
+            Advance threshold (%)
+          </Label>
+          <Input
+            id="survey-correctness-threshold"
+            type="number"
+            min={0}
+            max={100}
+            step={1}
+            value={survey.correctnessThreshold}
+            onChange={(event) =>
+              onSetSurvey((current) => ({
+                ...current,
+                correctnessThreshold: event.target.value,
+              }))
+            }
+          />
+          <p className="text-xs text-muted-foreground">
+            A submission becomes Advance when total score divided by max score
+            meets this percentage.
+          </p>
+        </div>
+        <div className="grid gap-2 sm:col-span-2">
           <Label htmlFor="survey-description">Description</Label>
           <Textarea
             id="survey-description"

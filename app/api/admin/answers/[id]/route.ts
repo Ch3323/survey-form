@@ -1,4 +1,5 @@
 import { jsonError } from "@/lib/api/survey";
+import { summarizeAssessment } from "@/lib/api/survey-scoring";
 import { requireAdmin } from "@/lib/admin-auth";
 import { enforceRateLimit, requireUuid } from "@/lib/api/security";
 import { prisma } from "@/lib/prisma";
@@ -43,6 +44,24 @@ export async function DELETE(request: Request, context: Params) {
       );
       const averageScore =
         remainingAnswers.length > 0 ? totalScore / remainingAnswers.length : 0;
+      const response = await tx.surveyResponse.findUniqueOrThrow({
+        where: {
+          id: answer.responseId,
+        },
+        select: {
+          maxScore: true,
+          survey: {
+            select: {
+              correctnessThreshold: true,
+            },
+          },
+        },
+      });
+      const { correctnessPercentage, assessmentLevel } = summarizeAssessment({
+        totalScore,
+        maxScore: response.maxScore,
+        correctnessThreshold: response.survey.correctnessThreshold,
+      });
 
       await tx.surveyResponse.update({
         where: {
@@ -51,6 +70,8 @@ export async function DELETE(request: Request, context: Params) {
         data: {
           totalScore,
           averageScore,
+          correctnessPercentage,
+          assessmentLevel,
         },
       });
     });
