@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
 import type { SectionMeta, SurveyOption, SurveyQuestion, SurveySection } from "../_lib/types";
 import { QuestionCard } from "./question-card";
 
@@ -17,6 +17,7 @@ type SectionCardProps = {
   allQuestions: SurveyQuestion[];
   onAddOption: (questionClientId: string) => void;
   onAddQuestion: (sectionId?: string) => void;
+  onMoveSection: (sectionId: string, direction: -1 | 1) => void;
   onMoveQuestion: (clientId: string, direction: -1 | 1) => void;
   onRemoveOption: (questionClientId: string, optionIndex: number) => void;
   onRemoveQuestion: (clientId: string) => void;
@@ -38,6 +39,7 @@ export function SectionCard({
   allQuestions,
   onAddOption,
   onAddQuestion,
+  onMoveSection,
   onMoveQuestion,
   onRemoveOption,
   onRemoveQuestion,
@@ -61,6 +63,28 @@ export function SectionCard({
                 </span>
               </div>
               <div className="flex shrink-0 items-center gap-2">
+                <div className="flex items-center gap-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Move section up"
+                    disabled={sectionIndex === 0}
+                    onClick={() => onMoveSection(section.id, -1)}
+                  >
+                    <ArrowUp />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Move section down"
+                    disabled={sectionIndex === totalSections - 1}
+                    onClick={() => onMoveSection(section.id, 1)}
+                  >
+                    <ArrowDown />
+                  </Button>
+                </div>
                 <Button
                   type="button"
                   variant="outline"
