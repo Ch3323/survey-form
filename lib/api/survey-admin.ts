@@ -21,6 +21,10 @@ import {
 } from "@/lib/survey-validation";
 
 type SurveyPayload = Record<string, unknown>;
+const SURVEY_UPDATE_TRANSACTION_OPTIONS = {
+  maxWait: 10_000,
+  timeout: 20_000,
+};
 
 export function parseSurveyCreatePayload(value: unknown) {
   const body = requireObject(value);
@@ -121,6 +125,12 @@ export async function updateSurveyWithQuestions(
       const existingQuestionIds = new Set(
         existingQuestions.map((question) => question.id),
       );
+      const existingOptionIdsByQuestionId = new Map(
+        existingQuestions.map((question) => [
+          question.id,
+          new Set(question.options.map((option) => option.id)),
+        ]),
+      );
       const seenQuestionIds = new Set<string>();
       const replaceQuestions = payload.replaceQuestions;
 
@@ -142,6 +152,7 @@ export async function updateSurveyWithQuestions(
 
       for (const question of payload.questions) {
         let questionId = replaceQuestions ? undefined : question.id;
+        let optionsAlreadyCreated = false;
 
         if (questionId) {
           if (!existingQuestionIds.has(questionId)) {
@@ -163,10 +174,16 @@ export async function updateSurveyWithQuestions(
           });
           questionId = created.id;
           seenQuestionIds.add(questionId);
+          optionsAlreadyCreated = true;
         }
 
-        if (question.options) {
-          await upsertOptions(tx, questionId, question.options);
+        if (question.options && !optionsAlreadyCreated) {
+          await upsertOptions(
+            tx,
+            questionId,
+            question.options,
+            existingOptionIdsByQuestionId.get(questionId),
+          );
         }
       }
 
@@ -189,7 +206,7 @@ export async function updateSurveyWithQuestions(
       where: { id: surveyId },
       include: surveyInclude,
     });
-  });
+  }, SURVEY_UPDATE_TRANSACTION_OPTIONS);
 }
 
 function parseQuestions(value: unknown) {
@@ -390,12 +407,18 @@ async function upsertOptions(
   tx: Prisma.TransactionClient,
   questionId: string,
   options: NonNullable<ReturnType<typeof parseQuestions>[number]["options"]>,
+  existingOptionIdsForQuestion?: Set<string>,
 ) {
-  const existingOptions = await tx.surveyQuestionOption.findMany({
-    where: { questionId },
-    select: { id: true },
-  });
-  const existingOptionIds = new Set(existingOptions.map((option) => option.id));
+  const existingOptionIds =
+    existingOptionIdsForQuestion ??
+    new Set(
+      (
+        await tx.surveyQuestionOption.findMany({
+          where: { questionId },
+          select: { id: true },
+        })
+      ).map((option) => option.id),
+    );
   const seenOptionIds = new Set<string>();
 
   for (const option of options) {

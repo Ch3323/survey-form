@@ -11,6 +11,7 @@ type ScoringQuestion = {
 
 const DEFAULT_CORRECTNESS_THRESHOLD = 70;
 const DEFAULT_RATING_MAX_SCORE = 5;
+const DEFAULT_BOOLEAN_SCORE = 0;
 
 export function normalizeCorrectnessThreshold(value: number | undefined) {
   if (value === undefined) {
@@ -39,6 +40,15 @@ export function scoreRatingAnswer(
   }
 
   return roundScore((selectedScore / scaleMax) * maxScore);
+}
+
+export function scoreBooleanAnswer(
+  question: Pick<ScoringQuestion, "settings">,
+  selectedValue: boolean,
+) {
+  return selectedValue
+    ? booleanTrueScore(question.settings)
+    : booleanFalseScore(question.settings);
 }
 
 export function ratingScaleMax(settings: unknown) {
@@ -97,6 +107,12 @@ function maxScoreForQuestion(question: ScoringQuestion) {
         (total, score) => total + Math.max(0, score),
         0,
       );
+    case SurveyQuestionInputType.BOOLEAN:
+      return Math.max(
+        0,
+        booleanTrueScore(question.settings),
+        booleanFalseScore(question.settings),
+      );
     default:
       return 0;
   }
@@ -111,6 +127,24 @@ function ratingMaxScore(settings: unknown) {
   }
 
   return Math.max(0, maxScore);
+}
+
+function booleanTrueScore(settings: unknown) {
+  const value = isRecord(settings) ? settings.booleanTrueScore : undefined;
+
+  return numberSetting(value, DEFAULT_BOOLEAN_SCORE);
+}
+
+function booleanFalseScore(settings: unknown) {
+  const value = isRecord(settings) ? settings.booleanFalseScore : undefined;
+
+  return numberSetting(value, DEFAULT_BOOLEAN_SCORE);
+}
+
+function numberSetting(value: unknown, fallback: number) {
+  const score = typeof value === "number" ? value : Number(value);
+
+  return Number.isFinite(score) ? score : fallback;
 }
 
 function scoreValues(options: ScoringQuestion["options"] = []) {

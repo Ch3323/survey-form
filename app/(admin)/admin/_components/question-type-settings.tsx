@@ -19,6 +19,7 @@ import {
 } from "@/lib/survey-validation";
 import { Plus, Trash2 } from "lucide-react";
 import {
+  booleanScoreInputValue,
   getRatingOptions,
   ratingMaxScoreInputValue,
   textPlaceholder,
@@ -236,14 +237,36 @@ export function QuestionTypeSettings({
           <Label>Answer buttons</Label>
           <div className="grid grid-cols-2 gap-2">
             {[true, false].map((value) => (
-              <Button
-                key={String(value)}
-                type="button"
-                variant="outline"
-                className="pointer-events-none"
-              >
-                {value ? "Yes" : "No"}
-              </Button>
+              <div key={String(value)} className="grid gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="pointer-events-none"
+                >
+                  {value ? "Yes" : "No"}
+                </Button>
+                <div className="grid gap-1.5">
+                  <Label htmlFor={`${question.clientId}-${value}-score`}>
+                    {value ? "Yes" : "No"} score
+                  </Label>
+                  <Input
+                    id={`${question.clientId}-${value}-score`}
+                    type="number"
+                    step={1}
+                    value={booleanScoreInputValue(question.settings, value)}
+                    onChange={(event) =>
+                      updateQuestion({
+                        settings: {
+                          ...question.settings,
+                          [value
+                            ? "booleanTrueScore"
+                            : "booleanFalseScore"]: event.target.value,
+                        },
+                      })
+                    }
+                  />
+                </div>
+              </div>
             ))}
           </div>
         </div>

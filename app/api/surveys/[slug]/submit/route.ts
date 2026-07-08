@@ -15,6 +15,7 @@ import {
 import {
   maxScoreForQuestions,
   ratingScaleMax,
+  scoreBooleanAnswer,
   scoreRatingAnswer,
   summarizeAssessment,
 } from "@/lib/api/survey-scoring";
@@ -214,6 +215,9 @@ function parseAnswer(question: PublicQuestion, answer: Record<string, unknown>) 
         answer.booleanValue ?? rawValue,
         question.title,
       );
+      if (parsed.booleanValue !== undefined) {
+        parsed.score = scoreBooleanAnswer(question, parsed.booleanValue);
+      }
       break;
     case SurveyQuestionInputType.NUMBER:
       parsed.numberValue = parseNumber(
