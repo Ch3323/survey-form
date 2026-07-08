@@ -27,6 +27,8 @@ import {
 import type { AnswerValue, Answers, LoadedSurvey } from "./_lib/types";
 import { toast } from "sonner";
 
+type AssessmentLevel = "BEGINNER" | "ADVANCED";
+
 export default function Page() {
   const [survey, setSurvey] = useState<LoadedSurvey | null>(null);
   const [answers, setAnswers] = useState<Answers>({});
@@ -37,12 +39,14 @@ export default function Page() {
   const [correctnessPercentage, setCorrectnessPercentage] = useState<
     number | null
   >(null);
-  const [assessmentLevel, setAssessmentLevel] = useState<
-    "BEGINNER" | "ADVANCED" | null
-  >(null);
+  const [assessmentLevel, setAssessmentLevel] =
+    useState<AssessmentLevel | null>(null);
+  const [recommendedAssessmentLevel, setRecommendedAssessmentLevel] =
+    useState<AssessmentLevel | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [choosingRoom, setChoosingRoom] = useState(false);
 
   const loadSurvey = useCallback(async () => {
     setLoading(true);
@@ -65,6 +69,8 @@ export default function Page() {
       setAverageScore(null);
       setCorrectnessPercentage(null);
       setAssessmentLevel(null);
+      setRecommendedAssessmentLevel(null);
+      setChoosingRoom(false);
     } catch (caught) {
       const message = errorMessage(caught, "Unable to load survey");
 
@@ -161,7 +167,7 @@ export default function Page() {
           id?: string;
           averageScore?: string | number;
           correctnessPercentage?: string | number;
-          assessmentLevel?: "BEGINNER" | "ADVANCED";
+          assessmentLevel?: AssessmentLevel;
         };
       }>(
         await fetch(`/api/surveys/${encodeURIComponent(survey.slug)}/submit`, {
@@ -182,7 +188,10 @@ export default function Page() {
           ? null
           : Number(data.response.correctnessPercentage),
       );
-      setAssessmentLevel(data.response?.assessmentLevel ?? null);
+      const submittedAssessmentLevel = data.response?.assessmentLevel ?? null;
+
+      setAssessmentLevel(submittedAssessmentLevel);
+      setRecommendedAssessmentLevel(submittedAssessmentLevel);
       clearSurveyDraft(survey.id);
       setSubmitted(true);
     } catch (caught) {
@@ -204,6 +213,55 @@ export default function Page() {
     setAverageScore(null);
     setCorrectnessPercentage(null);
     setAssessmentLevel(null);
+    setRecommendedAssessmentLevel(null);
+    setChoosingRoom(false);
+  }
+
+  function chooseRoom(nextAssessmentLevel: AssessmentLevel) {
+    setAssessmentLevel(nextAssessmentLevel);
+  }
+
+  async function submitRoomChoiceAndReset() {
+    if (!assessmentLevel || !responseId) {
+      resetSurvey();
+      return;
+    }
+
+    if (assessmentLevel === recommendedAssessmentLevel) {
+      resetSurvey();
+      return;
+    }
+
+    const selectedAssessmentLevel = assessmentLevel;
+
+    setChoosingRoom(true);
+
+    try {
+      const data = await readJsonResponse<{
+        response?: {
+          assessmentLevel?: AssessmentLevel;
+        };
+      }>(
+        await fetch(
+          `/api/responses/${encodeURIComponent(responseId)}/assessment-level`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ assessmentLevel: selectedAssessmentLevel }),
+          },
+        ),
+      );
+
+      setAssessmentLevel(
+        data.response?.assessmentLevel ?? selectedAssessmentLevel,
+      );
+      toast.success("Room choice saved");
+      resetSurvey();
+    } catch (caught) {
+      toast.error(errorMessage(caught, "Unable to save room choice"));
+    } finally {
+      setChoosingRoom(false);
+    }
   }
 
   if (loading) {
@@ -222,11 +280,14 @@ export default function Page() {
   if (submitted) {
     return (
       <SurveySubmitted
-        assessmentLevel={assessmentLevel}
+        recommendedAssessmentLevel={recommendedAssessmentLevel}
+        selectedAssessmentLevel={assessmentLevel}
         averageScore={averageScore}
         correctnessPercentage={correctnessPercentage}
+        choosingRoom={choosingRoom}
         responseId={responseId}
-        onReset={resetSurvey}
+        onChooseRoom={chooseRoom}
+        onSubmitRoomChoice={submitRoomChoiceAndReset}
       />
     );
   }
