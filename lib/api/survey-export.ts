@@ -10,7 +10,7 @@ type ExportAnswer = {
   questionId: string;
   questionTitleSnapshot: string;
   questionInputType: SurveyQuestionInputType;
-  score: number | null;
+  score: { toString(): string } | string | number | null;
   textValue: string | null;
   booleanValue: boolean | null;
   numberValue: { toString(): string } | string | number | null;
@@ -26,8 +26,8 @@ type ExportAnswer = {
 type ExportResponse = {
   id: string;
   anonymousKey: string | null;
-  totalScore: number;
-  maxScore: number;
+  totalScore: { toString(): string } | string | number;
+  maxScore: { toString(): string } | string | number;
   averageScore: { toString(): string } | string | number;
   correctnessPercentage: { toString(): string } | string | number;
   assessmentLevel: string;
@@ -139,12 +139,12 @@ function metadataColumns(): ExportColumn[] {
     {
       key: "totalScore",
       title: "Total score",
-      value: (response) => String(response.totalScore),
+      value: (response) => formatScore(response.totalScore),
     },
     {
       key: "maxScore",
       title: "Max score",
-      value: (response) => String(response.maxScore),
+      value: (response) => formatScore(response.maxScore),
     },
     {
       key: "averageScore",
@@ -210,7 +210,7 @@ function formatAnswer(answer: ExportAnswer | undefined) {
   }
 
   if (answer.score !== null && answer.score !== undefined) {
-    return String(answer.score);
+    return formatScore(answer.score);
   }
 
   if (answer.textValue) {
@@ -286,6 +286,16 @@ function formatDateTime(value: Date | string) {
 
 function formatAssessmentLevel(value: string) {
   return value === "ADVANCED" ? "Advance" : "Beginner";
+}
+
+function formatScore(value: { toString(): string } | string | number) {
+  const score = Number(value);
+
+  if (!Number.isFinite(score)) {
+    return String(value);
+  }
+
+  return Number.isInteger(score) ? score.toFixed(0) : score.toFixed(2);
 }
 
 function safeSheetName(value: string) {

@@ -142,7 +142,7 @@ export type SurveyResponse = {
     };
     questionTitleSnapshot: string;
     questionInputType: InputType;
-    score?: number | null;
+    score?: number | string | null;
     textValue?: string | null;
     booleanValue?: boolean | null;
     numberValue?: string | number | null;

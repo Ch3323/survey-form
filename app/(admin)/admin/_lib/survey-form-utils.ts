@@ -86,7 +86,11 @@ export function createQuestion(
     pageNumber: section.order + 1,
     settings:
       inputType === "RATING"
-        ? { ...sectionSettings, ratingOptions: defaultRatingOptions }
+        ? {
+            ...sectionSettings,
+            ratingOptions: defaultRatingOptions,
+            ratingMaxScore: 5,
+          }
         : sectionSettings,
     validation: {},
     options: choiceOptions,
@@ -256,6 +260,12 @@ export function surveyToPayload(survey: SurveyForm) {
         sectionDescription: question.sectionDescription.trim(),
         sectionOrder: question.sectionOrder,
         pageNumber: question.sectionOrder + 1,
+        ...(question.inputType === "RATING"
+          ? {
+              ratingOptions: getRatingOptions(),
+              ratingMaxScore: ratingMaxScoreNumber(question.settings),
+            }
+          : {}),
       };
 
       return {
@@ -325,6 +335,13 @@ export function importFormTemplate(
         minValue: question.minValue,
         maxValue: question.maxValue,
         stepValue: question.stepValue,
+        settings:
+          question.inputType === "RATING"
+            ? {
+                ...baseQuestion.settings,
+                ratingMaxScore: question.ratingMaxScore,
+              }
+            : baseQuestion.settings,
         validation: normalizeTemplateValidation(question.validation),
         required: question.required,
         isActive: question.isActive,
@@ -360,6 +377,7 @@ export function questionTypePatch(
         ? {
             ...question.settings,
             ratingOptions: getRatingOptions(),
+            ratingMaxScore: ratingMaxScoreNumber(question.settings),
           }
         : question.settings,
     validation:
@@ -373,7 +391,7 @@ export function formatAnswer(answer: SurveyResponse["answers"][number]) {
   }
 
   if (answer.score !== null && answer.score !== undefined) {
-    return String(answer.score);
+    return formatScore(answer.score);
   }
 
   if (answer.textValue) {
@@ -407,6 +425,16 @@ export function assessmentLevelLabel(level: SurveyResponse["assessmentLevel"]) {
   return level === "ADVANCED" ? "Advance" : "Beginner";
 }
 
+export function formatScore(value: number | string) {
+  const score = Number(value);
+
+  if (!Number.isFinite(score)) {
+    return String(value);
+  }
+
+  return Number.isInteger(score) ? score.toFixed(0) : score.toFixed(2);
+}
+
 export function textPlaceholder(type: InputType) {
   if (type === "EMAIL") {
     return "name@example.com";
@@ -421,6 +449,16 @@ export function textPlaceholder(type: InputType) {
 
 export function getRatingOptions() {
   return defaultRatingOptions;
+}
+
+export function ratingMaxScoreInputValue(settings: unknown) {
+  const value = toRecord(settings).ratingMaxScore;
+
+  if (value === undefined || value === null || value === "") {
+    return "5";
+  }
+
+  return String(value);
 }
 
 export function isChoiceType(type: InputType) {
@@ -508,6 +546,9 @@ function parseTemplateQuestion(value: unknown, field: string) {
     minValue: optionalTemplateStringOrNumber(question.minValue),
     maxValue: optionalTemplateStringOrNumber(question.maxValue),
     stepValue: optionalTemplateStringOrNumber(question.stepValue),
+    ratingMaxScore: optionalTemplateStringOrNumber(
+      question.ratingMaxScore ?? question.maxScore,
+    ) || "5",
     validation: normalizeTemplateValidation(question.validation),
     required: optionalTemplateBoolean(question.required, true),
     isActive: optionalTemplateBoolean(question.isActive, true),
@@ -645,6 +686,16 @@ function percentageInputToNumber(value: string) {
   }
 
   return Math.min(100, Math.max(0, Math.round(numberValue)));
+}
+
+function ratingMaxScoreNumber(settings: unknown) {
+  const numberValue = Number(ratingMaxScoreInputValue(settings));
+
+  if (!Number.isFinite(numberValue)) {
+    return 5;
+  }
+
+  return Math.max(0, Math.round(numberValue * 100) / 100);
 }
 
 function slugify(value: string) {
