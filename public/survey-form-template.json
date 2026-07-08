@@ -41,6 +41,14 @@
               "score": 0
             }
           ]
+        },
+        {
+          "title": "Do you want follow-up support?",
+          "helpText": "",
+          "inputType": "BOOLEAN",
+          "trueScore": 1,
+          "falseScore": 0,
+          "required": true
         }
       ]
     }

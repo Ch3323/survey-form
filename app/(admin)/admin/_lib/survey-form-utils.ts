@@ -91,6 +91,12 @@ export function createQuestion(
             ratingOptions: defaultRatingOptions,
             ratingMaxScore: 5,
           }
+        : inputType === "BOOLEAN"
+          ? {
+              ...sectionSettings,
+              booleanTrueScore: 0,
+              booleanFalseScore: 0,
+            }
         : sectionSettings,
     validation: {},
     options: choiceOptions,
@@ -266,6 +272,12 @@ export function surveyToPayload(survey: SurveyForm) {
               ratingMaxScore: ratingMaxScoreNumber(question.settings),
             }
           : {}),
+        ...(question.inputType === "BOOLEAN"
+          ? {
+              booleanTrueScore: booleanScoreNumber(question.settings, true),
+              booleanFalseScore: booleanScoreNumber(question.settings, false),
+            }
+          : {}),
       };
 
       return {
@@ -341,6 +353,12 @@ export function importFormTemplate(
                 ...baseQuestion.settings,
                 ratingMaxScore: question.ratingMaxScore,
               }
+            : question.inputType === "BOOLEAN"
+              ? {
+                  ...baseQuestion.settings,
+                  booleanTrueScore: question.booleanTrueScore,
+                  booleanFalseScore: question.booleanFalseScore,
+                }
             : baseQuestion.settings,
         validation: normalizeTemplateValidation(question.validation),
         required: question.required,
@@ -379,6 +397,12 @@ export function questionTypePatch(
             ratingOptions: getRatingOptions(),
             ratingMaxScore: ratingMaxScoreNumber(question.settings),
           }
+        : inputType === "BOOLEAN"
+          ? {
+              ...question.settings,
+              booleanTrueScore: booleanScoreNumber(question.settings, true),
+              booleanFalseScore: booleanScoreNumber(question.settings, false),
+            }
         : question.settings,
     validation:
       inputType === "TEXT" ? normalizeQuestionValidation(question) : {},
@@ -456,6 +480,20 @@ export function ratingMaxScoreInputValue(settings: unknown) {
 
   if (value === undefined || value === null || value === "") {
     return "5";
+  }
+
+  return String(value);
+}
+
+export function booleanScoreInputValue(
+  settings: unknown,
+  selectedValue: boolean,
+) {
+  const key = selectedValue ? "booleanTrueScore" : "booleanFalseScore";
+  const value = toRecord(settings)[key];
+
+  if (value === undefined || value === null || value === "") {
+    return "0";
   }
 
   return String(value);
@@ -549,6 +587,14 @@ function parseTemplateQuestion(value: unknown, field: string) {
     ratingMaxScore: optionalTemplateStringOrNumber(
       question.ratingMaxScore ?? question.maxScore,
     ) || "5",
+    booleanTrueScore:
+      optionalTemplateStringOrNumber(
+        question.booleanTrueScore ?? question.trueScore ?? question.yesScore,
+      ) || "0",
+    booleanFalseScore:
+      optionalTemplateStringOrNumber(
+        question.booleanFalseScore ?? question.falseScore ?? question.noScore,
+      ) || "0",
     validation: normalizeTemplateValidation(question.validation),
     required: optionalTemplateBoolean(question.required, true),
     isActive: optionalTemplateBoolean(question.isActive, true),
@@ -696,6 +742,16 @@ function ratingMaxScoreNumber(settings: unknown) {
   }
 
   return Math.max(0, Math.round(numberValue * 100) / 100);
+}
+
+function booleanScoreNumber(settings: unknown, selectedValue: boolean) {
+  const numberValue = Number(booleanScoreInputValue(settings, selectedValue));
+
+  if (!Number.isFinite(numberValue)) {
+    return 0;
+  }
+
+  return Math.round(numberValue * 100) / 100;
 }
 
 function slugify(value: string) {

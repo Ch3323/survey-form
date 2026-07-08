@@ -3,7 +3,7 @@ import {
   jsonError,
   jsonOk,
   publicSurveyInclude,
-  serialize,
+  serializePublicSurvey,
 } from "@/lib/api/survey";
 import { SurveyStatus } from "@/lib/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
@@ -26,7 +26,7 @@ export async function GET(_request: Request, context: Params) {
       throw new ApiError(404, "Survey not found");
     }
 
-    return jsonOk({ survey: serialize(survey) });
+    return jsonOk({ survey: serializePublicSurvey(survey) });
   } catch (error) {
     return jsonError(error);
   }

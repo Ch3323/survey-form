@@ -305,6 +305,37 @@ export function serialize(value: unknown): unknown {
   return value;
 }
 
+export function serializePublicSurvey<
+  T extends { questions?: Array<{ settings?: unknown }> },
+>(survey: T) {
+  return serialize({
+    ...survey,
+    questions: survey.questions?.map((question) => ({
+      ...question,
+      settings: publicQuestionSettings(question.settings),
+    })),
+  });
+}
+
+function publicQuestionSettings(settings: unknown) {
+  if (!isRecord(settings)) {
+    return settings;
+  }
+
+  const scoringKeys = new Set([
+    "booleanTrueScore",
+    "booleanFalseScore",
+    "trueScore",
+    "falseScore",
+    "yesScore",
+    "noScore",
+  ]);
+
+  return Object.fromEntries(
+    Object.entries(settings).filter(([key]) => !scoringKeys.has(key)),
+  );
+}
+
 function isDecimal(value: unknown) {
   return (
     isRecord(value) &&

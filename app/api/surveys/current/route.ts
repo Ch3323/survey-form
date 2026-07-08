@@ -3,7 +3,7 @@ import {
   jsonError,
   jsonOk,
   publicSurveyInclude,
-  serialize,
+  serializePublicSurvey,
 } from "@/lib/api/survey";
 import { SurveyStatus } from "@/lib/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
@@ -22,7 +22,7 @@ export async function GET() {
       throw new ApiError(404, "No active survey found");
     }
 
-    return jsonOk({ survey: serialize(survey) });
+    return jsonOk({ survey: serializePublicSurvey(survey) });
   } catch (error) {
     return jsonError(error);
   }
