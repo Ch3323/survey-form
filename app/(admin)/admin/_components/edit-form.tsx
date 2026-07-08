@@ -40,6 +40,7 @@ type EditFormProps = {
   onAddOption: (questionClientId: string) => void;
   onAddQuestion: (sectionId?: string) => void;
   onAddSection: () => void;
+  onMoveSection: (sectionId: string, direction: -1 | 1) => void;
   onMoveQuestion: (clientId: string, direction: -1 | 1) => void;
   onRemoveOption: (questionClientId: string, optionIndex: number) => void;
   onRemoveQuestion: (clientId: string) => void;
@@ -62,6 +63,7 @@ export function EditForm({
   onAddOption,
   onAddQuestion,
   onAddSection,
+  onMoveSection,
   onMoveQuestion,
   onRemoveOption,
   onRemoveQuestion,
@@ -226,6 +228,7 @@ export function EditForm({
             allQuestions={survey.questions}
             onAddOption={onAddOption}
             onAddQuestion={onAddQuestion}
+            onMoveSection={onMoveSection}
             onMoveQuestion={onMoveQuestion}
             onRemoveOption={onRemoveOption}
             onRemoveQuestion={onRemoveQuestion}

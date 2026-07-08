@@ -216,6 +216,62 @@ export function AdminDashboard({ adminName }: AdminDashboardProps) {
     });
   }
 
+  function moveSection(sectionId: string, direction: -1 | 1) {
+    setSurvey((current) => {
+      const sections = groupQuestionsIntoSections(
+        current.questions,
+        current.sections,
+      );
+      const index = sections.findIndex((section) => section.id === sectionId);
+      const nextIndex = index + direction;
+
+      if (index < 0 || nextIndex < 0 || nextIndex >= sections.length) {
+        return current;
+      }
+
+      const reorderedSections = [...sections];
+      const [section] = reorderedSections.splice(index, 1);
+      reorderedSections.splice(nextIndex, 0, section);
+
+      const nextSections = reorderedSections.map((item, order) => ({
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        order,
+      }));
+      const questionsBySectionId = new Map<string, SurveyQuestion[]>();
+
+      for (const question of current.questions) {
+        const sectionQuestions =
+          questionsBySectionId.get(question.sectionId) ?? [];
+        sectionQuestions.push(question);
+        questionsBySectionId.set(question.sectionId, sectionQuestions);
+      }
+
+      return {
+        ...current,
+        sections: nextSections,
+        questions: nextSections.flatMap((item) =>
+          (questionsBySectionId.get(item.id) ?? []).map((question) => ({
+            ...question,
+            sectionTitle: item.title,
+            sectionDescription: item.description,
+            sectionOrder: item.order,
+            pageNumber: item.order + 1,
+            settings: {
+              ...question.settings,
+              sectionId: item.id,
+              sectionTitle: item.title,
+              sectionDescription: item.description,
+              sectionOrder: item.order,
+              pageNumber: item.order + 1,
+            },
+          })),
+        ),
+      };
+    });
+  }
+
   function updateQuestion(clientId: string, patch: Partial<SurveyQuestion>) {
     setSurvey((current) => ({
       ...current,
@@ -452,6 +508,7 @@ export function AdminDashboard({ adminName }: AdminDashboardProps) {
                 onAddOption={addOption}
                 onAddQuestion={addQuestion}
                 onAddSection={addSection}
+                onMoveSection={moveSection}
                 onMoveQuestion={moveQuestion}
                 onRemoveOption={removeOption}
                 onRemoveQuestion={removeQuestion}
