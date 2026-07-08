@@ -20,6 +20,7 @@ export function emptySurveyForm(): SurveyForm {
     title: "Self Assessment",
     description: "A single self-assessment survey for every visitor.",
     status: "ACTIVE",
+    correctnessThreshold: "70",
     sections: [defaultSection()],
     questions: [],
   };
@@ -233,6 +234,7 @@ export function surveyToForm(survey: LoadedSurvey): SurveyForm {
     title: survey.title,
     description: survey.description ?? "",
     status: surveyStatusToMode(survey.status),
+    correctnessThreshold: String(survey.correctnessThreshold ?? 70),
     sections: sections.length > 0 ? sections : [defaultSection()],
     questions,
   };
@@ -244,6 +246,7 @@ export function surveyToPayload(survey: SurveyForm) {
     title: survey.title,
     description: survey.description,
     status: surveyModeToPayloadStatus(survey.status),
+    correctnessThreshold: percentageInputToNumber(survey.correctnessThreshold),
     replaceQuestions: survey.replaceQuestions === true,
     questions: survey.questions.map((question, index) => {
       const settings = {
@@ -398,6 +401,10 @@ export function typeLabel(type: InputType) {
     .split("_")
     .map((part) => part[0].toUpperCase() + part.slice(1))
     .join(" ");
+}
+
+export function assessmentLevelLabel(level: SurveyResponse["assessmentLevel"]) {
+  return level === "ADVANCED" ? "Advance" : "Beginner";
 }
 
 export function textPlaceholder(type: InputType) {
@@ -628,6 +635,16 @@ function toPayloadOptions(
       isActive: option.isActive,
     };
   });
+}
+
+function percentageInputToNumber(value: string) {
+  const numberValue = Number(value);
+
+  if (!Number.isFinite(numberValue)) {
+    return 70;
+  }
+
+  return Math.min(100, Math.max(0, Math.round(numberValue)));
 }
 
 function slugify(value: string) {

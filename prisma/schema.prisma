@@ -31,16 +31,22 @@ enum SurveyQuestionInputType {
   URL
 }
 
+enum AssessmentLevel {
+  BEGINNER
+  ADVANCED
+}
+
 model Survey {
-  id          String           @id @default(uuid()) @db.Uuid
-  slug        String           @unique @db.VarChar(80)
-  title       String           @db.VarChar(160)
-  description String?
-  status      SurveyStatus     @default(DRAFT)
-  questions   SurveyQuestion[]
-  responses   SurveyResponse[]
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id                   String           @id @default(uuid()) @db.Uuid
+  slug                 String           @unique @db.VarChar(80)
+  title                String           @db.VarChar(160)
+  description          String?
+  status               SurveyStatus     @default(DRAFT)
+  correctnessThreshold Int              @default(70)
+  questions            SurveyQuestion[]
+  responses            SurveyResponse[]
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
 
   @@index([status])
   @@map("surveys")
@@ -94,15 +100,18 @@ model SurveyQuestionOption {
 }
 
 model SurveyResponse {
-  id           String         @id @default(uuid()) @db.Uuid
-  surveyId     String         @db.Uuid
-  survey       Survey         @relation(fields: [surveyId], references: [id], onDelete: Cascade)
-  anonymousKey String?        @db.VarChar(120)
-  totalScore   Int            @default(0)
-  averageScore Decimal        @default(0) @db.Decimal(12, 2)
-  answers      SurveyAnswer[]
-  submittedAt  DateTime       @default(now())
-  createdAt    DateTime       @default(now())
+  id                    String          @id @default(uuid()) @db.Uuid
+  surveyId              String          @db.Uuid
+  survey                Survey          @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  anonymousKey          String?         @db.VarChar(120)
+  totalScore            Int             @default(0)
+  maxScore              Int             @default(0)
+  averageScore          Decimal         @default(0) @db.Decimal(12, 2)
+  correctnessPercentage Decimal         @default(0) @db.Decimal(5, 2)
+  assessmentLevel       AssessmentLevel @default(BEGINNER)
+  answers               SurveyAnswer[]
+  submittedAt           DateTime        @default(now())
+  createdAt             DateTime        @default(now())
 
   @@index([surveyId, submittedAt])
   @@index([anonymousKey])

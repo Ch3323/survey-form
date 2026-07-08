@@ -27,7 +27,10 @@ type ExportResponse = {
   id: string;
   anonymousKey: string | null;
   totalScore: number;
+  maxScore: number;
   averageScore: { toString(): string } | string | number;
+  correctnessPercentage: { toString(): string } | string | number;
+  assessmentLevel: string;
   submittedAt: Date | string;
   answers: ExportAnswer[];
 };
@@ -139,9 +142,24 @@ function metadataColumns(): ExportColumn[] {
       value: (response) => String(response.totalScore),
     },
     {
+      key: "maxScore",
+      title: "Max score",
+      value: (response) => String(response.maxScore),
+    },
+    {
       key: "averageScore",
       title: "Average score",
       value: (response) => String(response.averageScore),
+    },
+    {
+      key: "correctnessPercentage",
+      title: "Correctness %",
+      value: (response) => String(response.correctnessPercentage),
+    },
+    {
+      key: "assessmentLevel",
+      title: "Assessment level",
+      value: (response) => formatAssessmentLevel(response.assessmentLevel),
     },
   ];
 }
@@ -264,6 +282,10 @@ function formatDateTime(value: Date | string) {
   }
 
   return date.toISOString().replace("T", " ").slice(0, 19);
+}
+
+function formatAssessmentLevel(value: string) {
+  return value === "ADVANCED" ? "Advance" : "Beginner";
 }
 
 function safeSheetName(value: string) {

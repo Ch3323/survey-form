@@ -13,6 +13,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { ClipboardList, Trash2 } from "lucide-react";
 import type { SurveyResponse } from "../_lib/types";
 import {
+  assessmentLevelLabel,
   formatAnswer,
   typeLabel,
 } from "../_lib/survey-form-utils";
@@ -61,7 +62,16 @@ export function SubmissionDetailCard({
 function SubmissionScoreSummary({ response }: { response: SurveyResponse }) {
   return (
     <div className="grid grid-cols-2 gap-3">
+      <Stat
+        label="Level"
+        value={assessmentLevelLabel(response.assessmentLevel)}
+      />
+      <Stat
+        label="Correctness"
+        value={`${Number(response.correctnessPercentage).toFixed(1)}%`}
+      />
       <Stat label="Total score" value={Number(response.totalScore).toFixed(0)} />
+      <Stat label="Max score" value={Number(response.maxScore).toFixed(0)} />
       <Stat label="Average" value={Number(response.averageScore).toFixed(1)} />
     </div>
   );

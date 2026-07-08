@@ -34,6 +34,12 @@ export default function Page() {
   const [submitted, setSubmitted] = useState(false);
   const [responseId, setResponseId] = useState("");
   const [averageScore, setAverageScore] = useState<number | null>(null);
+  const [correctnessPercentage, setCorrectnessPercentage] = useState<
+    number | null
+  >(null);
+  const [assessmentLevel, setAssessmentLevel] = useState<
+    "BEGINNER" | "ADVANCED" | null
+  >(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -57,6 +63,8 @@ export default function Page() {
       setSubmitted(false);
       setResponseId("");
       setAverageScore(null);
+      setCorrectnessPercentage(null);
+      setAssessmentLevel(null);
     } catch (caught) {
       const message = errorMessage(caught, "Unable to load survey");
 
@@ -152,6 +160,8 @@ export default function Page() {
         response?: {
           id?: string;
           averageScore?: string | number;
+          correctnessPercentage?: string | number;
+          assessmentLevel?: "BEGINNER" | "ADVANCED";
         };
       }>(
         await fetch(`/api/surveys/${encodeURIComponent(survey.slug)}/submit`, {
@@ -167,6 +177,12 @@ export default function Page() {
           ? null
           : Number(data.response.averageScore),
       );
+      setCorrectnessPercentage(
+        data.response?.correctnessPercentage === undefined
+          ? null
+          : Number(data.response.correctnessPercentage),
+      );
+      setAssessmentLevel(data.response?.assessmentLevel ?? null);
       clearSurveyDraft(survey.id);
       setSubmitted(true);
     } catch (caught) {
@@ -186,6 +202,8 @@ export default function Page() {
     setSubmitted(false);
     setResponseId("");
     setAverageScore(null);
+    setCorrectnessPercentage(null);
+    setAssessmentLevel(null);
   }
 
   if (loading) {
@@ -204,7 +222,9 @@ export default function Page() {
   if (submitted) {
     return (
       <SurveySubmitted
+        assessmentLevel={assessmentLevel}
         averageScore={averageScore}
+        correctnessPercentage={correctnessPercentage}
         responseId={responseId}
         onReset={resetSurvey}
       />

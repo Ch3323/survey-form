@@ -17,6 +17,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 import { Trash2 } from "lucide-react";
 import type { SurveyQuestion, SurveyResponse } from "../_lib/types";
+import { assessmentLevelLabel } from "../_lib/survey-form-utils";
 import { ExportLayoutDialog } from "./export-layout-dialog";
 
 type SubmissionListProps = {
@@ -110,9 +111,14 @@ function SubmissionListItem({
         <span className="font-medium">
           {new Date(response.submittedAt).toLocaleString()}
         </span>
-        <Badge variant="outline">
-          {Number(response.averageScore).toFixed(1)}
-        </Badge>
+        <div className="flex shrink-0 items-center gap-2">
+          <Badge variant="secondary">
+            {assessmentLevelLabel(response.assessmentLevel)}
+          </Badge>
+          <Badge variant="outline">
+            {Number(response.correctnessPercentage).toFixed(1)}%
+          </Badge>
+        </div>
       </div>
       <p className="mt-1 truncate text-xs text-muted-foreground">
         {response.id}

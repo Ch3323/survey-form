@@ -106,6 +106,9 @@ function metadataExportColumns(): ExportColumn[] {
     { key: "responseId", label: "Response ID", enabled: true },
     { key: "anonymousKey", label: "Anonymous key", enabled: true },
     { key: "totalScore", label: "Total score", enabled: true },
+    { key: "maxScore", label: "Max score", enabled: true },
     { key: "averageScore", label: "Average score", enabled: true },
+    { key: "correctnessPercentage", label: "Correctness %", enabled: true },
+    { key: "assessmentLevel", label: "Assessment level", enabled: true },
   ];
 }
