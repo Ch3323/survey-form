@@ -166,7 +166,7 @@ export function QuestionTypeSettings({
       );
     case "TEXTAREA":
       return (
-        <div className="grid gap-4 rounded-xl border border-border bg-secondary/40 p-3 md:grid-cols-2">
+        <div className="grid gap-4 rounded-xl border border-border bg-secondary/40 p-3">
           <div className="grid gap-2">
             <Label htmlFor={`${question.clientId}-placeholder`}>
               Placeholder

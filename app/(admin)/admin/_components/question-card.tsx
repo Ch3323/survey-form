@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Card,
   CardContent,
@@ -56,15 +57,50 @@ export function QuestionCard({
   onUpdateQuestion,
 }: QuestionCardProps) {
   return (
-    <Card className="rounded-xl">
-      <CardHeader className="border-b bg-card">
-        <CardTitle className="flex flex-wrap items-center gap-2">
-          <span>Question {index + 1}</span>
-          <Badge variant="outline">{typeLabel(question.inputType)}</Badge>
-        </CardTitle>
-        <CardDescription>{sectionTitle}</CardDescription>
+    <Card className="rounded-lg border-border/80 shadow-sm">
+      <CardHeader className="border-b bg-card px-4 py-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <CardTitle className="flex flex-wrap items-center gap-2 text-base">
+              <span>Question {index + 1}</span>
+              <Badge variant="outline">{typeLabel(question.inputType)}</Badge>
+            </CardTitle>
+            <CardDescription>{sectionTitle}</CardDescription>
+          </div>
+          <div className="flex shrink-0 items-center gap-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label="Move question up"
+              onClick={() => onMoveQuestion(question.clientId, -1)}
+              disabled={index === 0}
+            >
+              <ArrowUp />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label="Move question down"
+              onClick={() => onMoveQuestion(question.clientId, 1)}
+              disabled={index === totalQuestions - 1}
+            >
+              <ArrowDown />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label="Delete question"
+              onClick={() => onRemoveQuestion(question.clientId)}
+            >
+              <Trash2 />
+            </Button>
+          </div>
+        </div>
       </CardHeader>
-      <CardContent className="grid gap-4 pt-4">
+      <CardContent className="grid gap-4 px-4">
         <div className="grid gap-4 md:grid-cols-[1fr_190px]">
           <div className="grid gap-2">
             <Label htmlFor={`${question.clientId}-title`}>Question</Label>
@@ -106,56 +142,26 @@ export function QuestionCard({
           </div>
         </div>
 
-        <QuestionTypeSettings
-          question={question}
-          onAddOption={onAddOption}
-          onRemoveOption={onRemoveOption}
-          onUpdateOption={onUpdateOption}
-          onUpdateQuestion={onUpdateQuestion}
-        />
+        <div className="flex flex-col gap-4">
+          <QuestionTypeSettings
+            question={question}
+            onAddOption={onAddOption}
+            onRemoveOption={onRemoveOption}
+            onUpdateOption={onUpdateOption}
+            onUpdateQuestion={onUpdateQuestion}
+          />
 
-        <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
+          <div className="flex w-fit self-end items-center gap-2 rounded-md border border-border bg-secondary/30 px-3 py-2 text-sm">
+            <Checkbox
+              id={`${question.clientId}-required`}
               checked={question.required}
-              onChange={(event) =>
+              onCheckedChange={(checked) =>
                 onUpdateQuestion(question.clientId, {
-                  required: event.target.checked,
+                  required: checked === true,
                 })
               }
             />
-            Required
-          </label>
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              aria-label="Move question up"
-              onClick={() => onMoveQuestion(question.clientId, -1)}
-              disabled={index === 0}
-            >
-              <ArrowUp />
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              aria-label="Move question down"
-              onClick={() => onMoveQuestion(question.clientId, 1)}
-              disabled={index === totalQuestions - 1}
-            >
-              <ArrowDown />
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={() => onRemoveQuestion(question.clientId)}
-            >
-              <Trash2 />
-              Delete
-            </Button>
+            <Label htmlFor={`${question.clientId}-required`}>Required</Label>
           </div>
         </div>
       </CardContent>
