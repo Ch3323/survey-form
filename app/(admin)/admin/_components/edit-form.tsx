@@ -98,80 +98,86 @@ export function EditForm({
   }
 
   return (
-    <div className="flex flex-col gap-5">
-      <section className="grid gap-4 rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-cloud-panel)] sm:grid-cols-2">
-        <div className="grid gap-2">
-          <Label htmlFor="survey-title">Title</Label>
-          <Input
-            id="survey-title"
-            value={survey.title}
-            onChange={(event) =>
-              onSetSurvey((current) => ({
-                ...current,
-                title: event.target.value,
-              }))
-            }
-          />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="survey-status">Availability</Label>
-          <Select
-            value={survey.status}
-            onValueChange={(value) =>
-              onSetSurvey((current) => ({
-                ...current,
-                status: value as SurveyForm["status"],
-              }))
-            }
-          >
-            <SelectTrigger id="survey-status" className="h-9 w-full bg-card">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ACTIVE">Active</SelectItem>
-              <SelectItem value="INACTIVE">Inactive</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="grid gap-2 sm:col-span-2">
-          <Label htmlFor="survey-correctness-threshold">
-            Advance threshold (%)
-          </Label>
-          <Input
-            id="survey-correctness-threshold"
-            type="number"
-            min={0}
-            max={100}
-            step={1}
-            value={survey.correctnessThreshold}
-            onChange={(event) =>
-              onSetSurvey((current) => ({
-                ...current,
-                correctnessThreshold: event.target.value,
-              }))
-            }
-          />
+    <div className="flex flex-col gap-6">
+      <section className="rounded-xl border border-border bg-card shadow-[var(--shadow-cloud-panel)]">
+        <div className="border-b border-border px-5 py-4">
+          <p className="text-sm font-semibold text-cloud-heading">
+            Form settings
+          </p>
           <p className="text-xs text-muted-foreground">
-            A submission becomes Advance when total score divided by max score
-            meets this percentage.
+            Core details, availability, and scoring threshold.
           </p>
         </div>
-        <div className="grid gap-2 sm:col-span-2">
-          <Label htmlFor="survey-description">Description</Label>
-          <Textarea
-            id="survey-description"
-            value={survey.description}
-            onChange={(event) =>
-              onSetSurvey((current) => ({
-                ...current,
-                description: event.target.value,
-              }))
-            }
-          />
+        <div className="grid gap-4 p-5 sm:grid-cols-2">
+          <div className="grid gap-2 sm:col-span-2">
+            <Label htmlFor="survey-title">Title</Label>
+            <Input
+              id="survey-title"
+              value={survey.title}
+              onChange={(event) =>
+                onSetSurvey((current) => ({
+                  ...current,
+                  title: event.target.value,
+                }))
+              }
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="survey-status">Availability</Label>
+            <Select
+              value={survey.status}
+              onValueChange={(value) =>
+                onSetSurvey((current) => ({
+                  ...current,
+                  status: value as SurveyForm["status"],
+                }))
+              }
+            >
+              <SelectTrigger id="survey-status" className="h-9 w-full bg-card">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ACTIVE">Active</SelectItem>
+                <SelectItem value="INACTIVE">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="survey-correctness-threshold">
+              Advance threshold (%)
+            </Label>
+            <Input
+              id="survey-correctness-threshold"
+              type="number"
+              min={0}
+              max={100}
+              step={1}
+              value={survey.correctnessThreshold}
+              onChange={(event) =>
+                onSetSurvey((current) => ({
+                  ...current,
+                  correctnessThreshold: event.target.value,
+                }))
+              }
+            />
+          </div>
+          <div className="grid gap-2 sm:col-span-2">
+            <Label htmlFor="survey-description">Description</Label>
+            <Textarea
+              id="survey-description"
+              value={survey.description}
+              onChange={(event) =>
+                onSetSurvey((current) => ({
+                  ...current,
+                  description: event.target.value,
+                }))
+              }
+            />
+          </div>
         </div>
       </section>
 
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
         <input
           ref={fileInputRef}
           className="sr-only"

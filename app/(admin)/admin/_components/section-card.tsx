@@ -2,11 +2,6 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -52,66 +47,76 @@ export function SectionCard({
   onUpdateSection,
 }: SectionCardProps) {
   return (
-    <Card className="rounded-xl border-primary/20 pt-0">
-      <CardHeader className="border-b bg-secondary/40 pt-4">
+    <section className="overflow-hidden rounded-xl border border-primary/20 bg-card shadow-[var(--shadow-cloud-panel)]">
+      <div className="border-b border-border bg-secondary/30 p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="grid min-w-0 flex-1 gap-3">
-            <Badge variant="secondary" className="w-fit">
-              Section {sectionIndex + 1} of {totalSections}
-            </Badge>
-            <div className="grid gap-2">
-              <Label htmlFor={`${section.id}-title`}>Section title</Label>
-              <Input
-                id={`${section.id}-title`}
-                value={section.title}
-                placeholder={`Section ${sectionIndex + 1}`}
-                onChange={(event) =>
-                  onUpdateSection(section.id, {
-                    title: event.target.value,
-                  })
-                }
-              />
+          <div className="grid min-w-0 flex-1 gap-4">
+            <div className="flex justify-between items-center">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="secondary">
+                  Section {sectionIndex + 1} of {totalSections}
+                </Badge>
+                <span className="text-xs text-muted-foreground">
+                  {section.questions.length} questions
+                </span>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onAddQuestion(section.id)}
+                >
+                  <Plus />
+                  Add question
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  disabled={totalSections <= 1}
+                  onClick={() => onRemoveSection(section.id)}
+                >
+                  <Trash2 />
+                  Delete
+                </Button>
+              </div>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor={`${section.id}-description`}>
-                Section description
-              </Label>
-              <Textarea
-                id={`${section.id}-description`}
-                value={section.description}
-                placeholder="Add a section description"
-                onChange={(event) =>
-                  onUpdateSection(section.id, {
-                    description: event.target.value,
-                  })
-                }
-              />
+            <div className="grid gap-3 grid-cols-1">
+              <div className="grid gap-2">
+                <Label htmlFor={`${section.id}-title`}>Section title</Label>
+                <Input
+                  id={`${section.id}-title`}
+                  value={section.title}
+                  placeholder={`Section ${sectionIndex + 1}`}
+                  onChange={(event) =>
+                    onUpdateSection(section.id, {
+                      title: event.target.value,
+                    })
+                  }
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor={`${section.id}-description`}>
+                  Section description
+                </Label>
+                <Textarea
+                  id={`${section.id}-description`}
+                  value={section.description}
+                  placeholder="Add a section description"
+                  className="min-h-20 scrollbar-none"
+                  onChange={(event) =>
+                    onUpdateSection(section.id, {
+                      description: event.target.value,
+                    })
+                  }
+                />
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="destructive"
-              disabled={totalSections <= 1}
-              onClick={() => onRemoveSection(section.id)}
-            >
-              <Trash2 />
-              Delete section
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onAddQuestion(section.id)}
-            >
-              <Plus />
-              Add question
-            </Button>
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="grid gap-4 pt-4">
+      </div>
+      <div className="grid gap-4 p-4">
         {section.questions.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-border bg-secondary/30 p-5 text-sm text-muted-foreground">
+          <div className="rounded-lg border border-dashed border-border bg-secondary/30 p-5 text-sm text-muted-foreground">
             No questions in this section yet.
           </div>
         ) : null}
@@ -136,7 +141,7 @@ export function SectionCard({
             />
           );
         })}
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 }
