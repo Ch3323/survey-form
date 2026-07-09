@@ -5,6 +5,7 @@ import { QuestionCard } from "./question-card";
 
 type SectionViewProps = {
   answers: Answers;
+  invalidQuestionId?: string | null;
   page: PageGroup;
   pageIndex: number;
   onUpdateAnswer: (
@@ -15,6 +16,7 @@ type SectionViewProps = {
 
 export function SectionView({
   answers,
+  invalidQuestionId,
   page,
   pageIndex,
   onUpdateAnswer,
@@ -41,6 +43,7 @@ export function SectionView({
             key={question.id}
             answer={answers[question.id]}
             index={index}
+            isInvalid={invalidQuestionId === question.id}
             question={question}
             onUpdateAnswer={onUpdateAnswer}
           />

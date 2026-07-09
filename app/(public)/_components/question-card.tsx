@@ -12,6 +12,7 @@ import { QuestionInput } from "./question-input";
 type QuestionCardProps = {
   answer: AnswerValue | undefined;
   index: number;
+  isInvalid?: boolean;
   question: SurveyQuestion;
   onUpdateAnswer: (
     questionId: string,
@@ -22,11 +23,21 @@ type QuestionCardProps = {
 export function QuestionCard({
   answer,
   index,
+  isInvalid = false,
   question,
   onUpdateAnswer,
 }: QuestionCardProps) {
   return (
-    <Card className="relative rounded-xl">
+    <Card
+      id={`question-${question.id}`}
+      tabIndex={-1}
+      aria-invalid={isInvalid}
+      className={`relative rounded-xl outline-none transition-shadow ${
+        isInvalid
+          ? "border-destructive/60 ring-2 ring-destructive/25"
+          : ""
+      }`}
+    >
       {question.required ? (
         <span
           aria-label="Required question"
