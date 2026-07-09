@@ -21,7 +21,6 @@ import {
   surveyToPayload,
 } from "./_lib/survey-form-utils";
 import {
-  type AdminSurveyListItem,
   type AdminTab,
   type InputType,
   type LoadedSurvey,
@@ -36,11 +35,17 @@ type AdminDashboardProps = {
   adminName: string;
 };
 
+type ResponsesStatus = "idle" | "loading" | "loaded" | "error";
+
 export function AdminDashboard({ adminName }: AdminDashboardProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<AdminTab>("edit");
   const [survey, setSurvey] = useState<SurveyForm>(() => emptySurveyForm());
   const [responses, setResponses] = useState<SurveyResponse[]>([]);
+  const [responseCount, setResponseCount] = useState(0);
+  const [responsesStatus, setResponsesStatus] =
+    useState<ResponsesStatus>("idle");
+  const [responsesError, setResponsesError] = useState("");
   const [selectedResponseId, setSelectedResponseId] = useState("");
   const [newQuestionType, setNewQuestionType] = useState<InputType>("RATING");
   const [loading, setLoading] = useState(true);
@@ -67,48 +72,72 @@ export function AdminDashboard({ adminName }: AdminDashboardProps) {
       questions: activeQuestions.length,
       pages: sections.length,
       sections: sections.length,
-      responses: responses.length,
+      responses: responsesStatus === "loaded" ? responses.length : responseCount,
     };
-  }, [responses.length, survey.questions, survey.sections]);
+  }, [responseCount, responses.length, responsesStatus, survey.questions, survey.sections]);
 
   const loadDashboard = useCallback(async () => {
     setLoading(true);
 
     try {
-      const listData = await readJsonResponse<{ surveys: AdminSurveyListItem[] }>(
-        await fetch("/api/admin/surveys", { cache: "no-store" }),
+      const data = await readJsonResponse<{ survey: LoadedSurvey | null }>(
+        await fetch("/api/admin/surveys/current", { cache: "no-store" }),
       );
-      const firstSurvey = listData.surveys[0];
+      const loadedSurvey = data.survey;
 
-      if (!firstSurvey) {
+      if (!loadedSurvey) {
         setSurvey(emptySurveyForm());
         setResponses([]);
+        setResponseCount(0);
+        setResponsesStatus("loaded");
+        setResponsesError("");
         setSelectedResponseId("");
         return;
       }
 
-      const surveyData = await readJsonResponse<{ survey: LoadedSurvey }>(
-        await fetch(`/api/admin/surveys/${firstSurvey.id}`, {
-          cache: "no-store",
-        }),
-      );
-      const responseData = await readJsonResponse<{
-        responses: SurveyResponse[];
-      }>(
-        await fetch(`/api/admin/surveys/${firstSurvey.id}/responses`, {
-          cache: "no-store",
-        }),
-      );
-
-      setSurvey(surveyToForm(surveyData.survey));
-      setResponses(responseData.responses);
-      setSelectedResponseId(responseData.responses[0]?.id ?? "");
+      setSurvey(surveyToForm(loadedSurvey));
+      setResponses([]);
+      setResponseCount(loadedSurvey._count?.responses ?? 0);
+      setResponsesStatus("idle");
+      setResponsesError("");
+      setSelectedResponseId("");
     } catch (caught) {
       toast.error(errorMessage(caught, "Unable to load dashboard"));
     } finally {
       setLoading(false);
     }
   }, []);
+
+  const loadResponses = useCallback(
+    async (surveyId: string, options: { force?: boolean } = {}) => {
+      if (!options.force && responsesStatus !== "idle") {
+        return;
+      }
+
+      setResponsesStatus("loading");
+      setResponsesError("");
+
+      try {
+        const data = await readJsonResponse<{ responses: SurveyResponse[] }>(
+          await fetch(`/api/admin/surveys/${surveyId}/responses`, {
+            cache: "no-store",
+          }),
+        );
+
+        setResponses(data.responses);
+        setResponseCount(data.responses.length);
+        setSelectedResponseId((current) => current || data.responses[0]?.id || "");
+        setResponsesStatus("loaded");
+      } catch (caught) {
+        const message = errorMessage(caught, "Unable to load submissions");
+
+        setResponsesError(message);
+        setResponsesStatus("error");
+        toast.error(message);
+      }
+    },
+    [responsesStatus],
+  );
 
   useEffect(() => {
     let active = true;
@@ -123,6 +152,25 @@ export function AdminDashboard({ adminName }: AdminDashboardProps) {
       active = false;
     };
   }, [loadDashboard]);
+
+  useEffect(() => {
+    if (activeTab !== "submissions" || !survey.id || responsesStatus !== "idle") {
+      return;
+    }
+
+    let active = true;
+    const surveyId = survey.id;
+
+    void Promise.resolve().then(() => {
+      if (active) {
+        void loadResponses(surveyId);
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [activeTab, loadResponses, responsesStatus, survey.id]);
 
   function addQuestion(sectionId?: string) {
     setSurvey((current) => ({
@@ -393,28 +441,11 @@ export function AdminDashboard({ adminName }: AdminDashboardProps) {
 
       setSurvey(surveyToForm(data.survey));
       toast.success("Survey saved");
-      await refreshResponses(data.survey.id);
     } catch (caught) {
       toast.error(errorMessage(caught, "Unable to save survey"));
     } finally {
       setSaving(false);
     }
-  }
-
-  async function refreshResponses(surveyId = survey.id) {
-    if (!surveyId) {
-      setResponses([]);
-      setSelectedResponseId("");
-      return;
-    }
-
-    const data = await readJsonResponse<{ responses: SurveyResponse[] }>(
-      await fetch(`/api/admin/surveys/${surveyId}/responses`, {
-        cache: "no-store",
-      }),
-    );
-    setResponses(data.responses);
-    setSelectedResponseId((current) => current || data.responses[0]?.id || "");
   }
 
   async function deleteResponse(responseId: string) {
@@ -431,6 +462,7 @@ export function AdminDashboard({ adminName }: AdminDashboardProps) {
 
       setResponses((current) => {
         const next = current.filter((item) => item.id !== responseId);
+        setResponseCount(next.length);
         setSelectedResponseId(next[0]?.id ?? "");
         return next;
       });
@@ -459,6 +491,8 @@ export function AdminDashboard({ adminName }: AdminDashboardProps) {
       }
 
       setResponses([]);
+      setResponseCount(0);
+      setResponsesStatus("loaded");
       setSelectedResponseId("");
       toast.success("All submissions cleared");
     } catch (caught) {
@@ -473,6 +507,12 @@ export function AdminDashboard({ adminName }: AdminDashboardProps) {
     await authClient.signOut();
     router.replace("/admin/login");
     router.refresh();
+  }
+
+  function reloadResponses() {
+    if (survey.id) {
+      void loadResponses(survey.id, { force: true });
+    }
   }
 
   return (
@@ -524,13 +564,19 @@ export function AdminDashboard({ adminName }: AdminDashboardProps) {
               <SubmissionView
                 clearingResponses={clearingResponses}
                 deletingResponseId={deletingResponseId}
+                loadingResponses={
+                  responsesStatus === "loading" ||
+                  (responsesStatus === "idle" && Boolean(survey.id))
+                }
                 responses={responses}
+                responsesError={responsesError}
                 selectedResponse={selectedResponse}
                 selectedResponseId={selectedResponseId}
                 surveyId={survey.id}
                 surveyQuestions={survey.questions}
                 onClearResponses={clearResponses}
                 onDeleteResponse={deleteResponse}
+                onReloadResponses={reloadResponses}
                 onSelectResponse={setSelectedResponseId}
               />
             )}
