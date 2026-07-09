@@ -98,7 +98,7 @@ function SubmissionScoreSummary({ response }: { response: SurveyResponse }) {
 
 function SubmissionAnswerList({ response }: { response: SurveyResponse }) {
   return (
-    <div className="grid min-h-0 flex-1 gap-3 overflow-y-auto pr-1 scroll-smooth">
+    <div className="grid min-h-0 flex-1 gap-3 overflow-y-auto pr-1 scrollbar-none scroll-smooth">
       {response.answers.map((answer) => (
         <div
           key={answer.id}
