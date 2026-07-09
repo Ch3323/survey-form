@@ -2,53 +2,151 @@
   "version": 1,
   "sections": [
     {
-      "title": "Section 1",
-      "description": "Introductory questions",
+      "id": "scored-assessment",
+      "title": "Scored assessment",
+      "description": "Examples for scored question types: rating, single choice, multiple choice, and yes/no.",
       "questions": [
         {
-          "title": "How satisfied are you?",
-          "helpText": "",
+          "title": "Rate your current confidence level",
+          "helpText": "Rating answers use a 1-5 scale and are converted into the max score below.",
           "inputType": "RATING",
           "ratingMaxScore": 10,
-          "required": true
+          "required": true,
+          "isActive": true
         },
         {
-          "title": "What should we improve?",
-          "helpText": "",
-          "inputType": "TEXTAREA",
-          "placeholder": "Share your thoughts",
-          "maxLength": 500,
-          "required": false
-        }
-      ]
-    },
-    {
-      "title": "Section 2",
-      "description": "Profile",
-      "questions": [
-        {
-          "title": "Which option fits you best?",
-          "helpText": "",
+          "title": "Which level describes you best?",
+          "helpText": "Single choice stores one selected option and uses that option score.",
           "inputType": "SINGLE_CHOICE",
           "required": true,
+          "isActive": true,
           "options": [
             {
-              "label": "Option A",
-              "score": 1
+              "label": "Beginner",
+              "value": "beginner",
+              "score": 0,
+              "isActive": true
             },
             {
-              "label": "Option B",
-              "score": 0
+              "label": "Intermediate",
+              "value": "intermediate",
+              "score": 5,
+              "isActive": true
+            },
+            {
+              "label": "Advanced",
+              "value": "advanced",
+              "score": 10,
+              "isActive": true
             }
           ]
         },
         {
-          "title": "Do you want follow-up support?",
-          "helpText": "",
+          "title": "Which skills have you practiced?",
+          "helpText": "Multiple choice can add the score from every selected option.",
+          "inputType": "MULTIPLE_CHOICE",
+          "required": true,
+          "isActive": true,
+          "options": [
+            {
+              "label": "Reading documentation",
+              "value": "reading-documentation",
+              "score": 2,
+              "isActive": true
+            },
+            {
+              "label": "Building small projects",
+              "value": "building-small-projects",
+              "score": 4,
+              "isActive": true
+            },
+            {
+              "label": "Debugging production issues",
+              "value": "debugging-production-issues",
+              "score": 6,
+              "isActive": true
+            }
+          ]
+        },
+        {
+          "title": "Have you completed the prerequisite lesson?",
+          "helpText": "Boolean questions can score Yes and No differently.",
           "inputType": "BOOLEAN",
-          "trueScore": 1,
-          "falseScore": 0,
-          "required": true
+          "booleanTrueScore": 5,
+          "booleanFalseScore": 0,
+          "required": true,
+          "isActive": true
+        }
+      ]
+    },
+    {
+      "id": "text-inputs",
+      "title": "Text inputs",
+      "description": "Examples for short text, long text, email, and URL fields.",
+      "questions": [
+        {
+          "title": "Student ID",
+          "helpText": "TEXT supports maxLength, placeholder, and an optional DIGITS_ONLY input filter.",
+          "inputType": "TEXT",
+          "placeholder": "Example: 65012345",
+          "maxLength": 12,
+          "validation": {
+            "inputFilter": "DIGITS_ONLY"
+          },
+          "required": true,
+          "isActive": true
+        },
+        {
+          "title": "What topic should we help you with?",
+          "helpText": "TEXTAREA supports longer answers and maxLength.",
+          "inputType": "TEXTAREA",
+          "placeholder": "Describe the topic in a few sentences",
+          "maxLength": 500,
+          "required": false,
+          "isActive": true
+        },
+        {
+          "title": "Contact email",
+          "helpText": "EMAIL uses the browser email keyboard and validation behavior.",
+          "inputType": "EMAIL",
+          "placeholder": "name@example.com",
+          "maxLength": 160,
+          "required": true,
+          "isActive": true
+        },
+        {
+          "title": "Portfolio or project URL",
+          "helpText": "URL uses the browser URL keyboard and validation behavior.",
+          "inputType": "URL",
+          "placeholder": "https://example.com/project",
+          "maxLength": 240,
+          "required": false,
+          "isActive": true
+        }
+      ]
+    },
+    {
+      "id": "number-and-date",
+      "title": "Number and date",
+      "description": "Examples for numeric limits, step size, and date input.",
+      "questions": [
+        {
+          "title": "How many hours can you study per week?",
+          "helpText": "NUMBER supports placeholder, minValue, maxValue, and stepValue.",
+          "inputType": "NUMBER",
+          "placeholder": "Example: 6",
+          "minValue": 0,
+          "maxValue": 40,
+          "stepValue": 0.5,
+          "required": true,
+          "isActive": true
+        },
+        {
+          "title": "Preferred start date",
+          "helpText": "DATE stores a calendar date value.",
+          "inputType": "DATE",
+          "required": false,
+          "isActive": true
         }
       ]
     }
