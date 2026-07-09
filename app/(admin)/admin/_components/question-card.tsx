@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { ArrowDown, ArrowUp, Trash2 } from "lucide-react";
 import {
   questionTypePatch,
@@ -140,6 +141,22 @@ export function QuestionCard({
               </SelectContent>
             </Select>
           </div>
+        </div>
+
+        <div className="grid gap-2">
+          <Label htmlFor={`${question.clientId}-help-text`}>Help text</Label>
+          <Textarea
+            id={`${question.clientId}-help-text`}
+            value={question.helpText}
+            className="min-h-9 h-9 scrollbar-none scroll-smooth"
+            placeholder="Optional helper text shown below the question"
+            rows={2}
+            onChange={(event) =>
+              onUpdateQuestion(question.clientId, {
+                helpText: event.target.value,
+              })
+            }
+          />
         </div>
 
         <div className="flex flex-col gap-4">

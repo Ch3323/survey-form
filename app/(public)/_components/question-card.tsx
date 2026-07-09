@@ -3,6 +3,7 @@
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -27,6 +28,8 @@ export function QuestionCard({
   question,
   onUpdateAnswer,
 }: QuestionCardProps) {
+  const helpText = question.helpText?.trim();
+
   return (
     <Card
       id={`question-${question.id}`}
@@ -46,13 +49,18 @@ export function QuestionCard({
           *
         </span>
       ) : null}
-      <CardHeader className="pr-10">
+      <CardHeader className="pr-10 gap-0">
         <CardTitle className="flex items-start gap-3 text-base">
           <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-secondary text-sm text-primary">
             {index + 1}
           </span>
           <span>{question.title}</span>
         </CardTitle>
+        {helpText ? (
+          <CardDescription className="pl-10 leading-6">
+            {helpText}
+          </CardDescription>
+        ) : null}
       </CardHeader>
       <CardContent>
         <QuestionInput
