@@ -88,6 +88,9 @@ export type LoadedSurvey = {
   description?: string | null;
   status: SurveyStatus;
   correctnessThreshold?: number | string | null;
+  _count?: {
+    responses: number;
+  };
   questions: Array<{
     id: string;
     title: string;
