@@ -29,10 +29,17 @@ import { toast } from "sonner";
 
 type AssessmentLevel = "BEGINNER" | "ADVANCED";
 
+type ValidationTarget = {
+  attempt: number;
+  questionId: string;
+};
+
 export default function Page() {
   const [survey, setSurvey] = useState<LoadedSurvey | null>(null);
   const [answers, setAnswers] = useState<Answers>({});
   const [currentPage, setCurrentPage] = useState(1);
+  const [validationTarget, setValidationTarget] =
+    useState<ValidationTarget | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [responseId, setResponseId] = useState("");
   const [averageScore, setAverageScore] = useState<number | null>(null);
@@ -122,16 +129,53 @@ export default function Page() {
     requiredQuestions.length > 0
       ? Math.round((answeredRequired / requiredQuestions.length) * 100)
       : 100;
-  const canSubmit =
-    survey !== null &&
-    requiredQuestions.every((question) =>
-      questionHasValue(question, answers[question.id]),
-    );
   const isLastPage = currentPageIndex === pageGroups.length - 1;
   const isFirstPage = currentPageIndex <= 0;
+  const invalidQuestionId = validationTarget?.questionId ?? null;
+
+  useEffect(() => {
+    if (!validationTarget || !currentPageGroup) {
+      return;
+    }
+
+    const questionIsVisible = currentPageGroup.questions.some(
+      (question) => question.id === validationTarget.questionId,
+    );
+
+    if (!questionIsVisible) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      const questionElement = document.getElementById(
+        `question-${validationTarget.questionId}`,
+      );
+
+      questionElement?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+
+      const focusableElement = questionElement?.querySelector<HTMLElement>(
+        "input, textarea, button, select",
+      );
+
+      (focusableElement ?? questionElement)?.focus({ preventScroll: true });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [currentPageGroup, validationTarget]);
 
   function updateAnswer(questionId: string, value: AnswerValue | undefined) {
     setAnswers((current) => ({ ...current, [questionId]: value }));
+
+    if (validationTarget?.questionId === questionId && survey) {
+      const question = survey.questions.find((item) => item.id === questionId);
+
+      if (question && questionHasValue(question, value)) {
+        setValidationTarget(null);
+      }
+    }
   }
 
   function goToPreviousPage() {
@@ -151,7 +195,28 @@ export default function Page() {
   }
 
   async function handleSubmit() {
-    if (!survey || !canSubmit) {
+    if (!survey) {
+      return;
+    }
+
+    const firstMissingQuestion = requiredQuestions.find(
+      (question) => !questionHasValue(question, answers[question.id]),
+    );
+
+    if (firstMissingQuestion) {
+      const targetPage = pageGroups.find((page) =>
+        page.questions.some((question) => question.id === firstMissingQuestion.id),
+      );
+
+      if (targetPage) {
+        setCurrentPage(targetPage.pageNumber);
+      }
+
+      setValidationTarget((current) => ({
+        attempt: (current?.attempt ?? 0) + 1,
+        questionId: firstMissingQuestion.id,
+      }));
+      toast.error("กรุณากรอกข้อมูลที่จำเป็นให้ครบก่อนส่งแบบฟอร์ม");
       return;
     }
 
@@ -304,6 +369,7 @@ export default function Page() {
       {currentPageGroup ? (
         <SectionView
           answers={answers}
+          invalidQuestionId={invalidQuestionId}
           page={currentPageGroup}
           pageIndex={currentPageIndex}
           onUpdateAnswer={updateAnswer}
@@ -311,7 +377,6 @@ export default function Page() {
       ) : null}
 
       <SurveyNavigation
-        canSubmit={canSubmit}
         isFirstPage={isFirstPage}
         isLastPage={isLastPage}
         submitting={submitting}

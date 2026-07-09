@@ -5,7 +5,6 @@ import { Spinner } from "@/components/ui/spinner";
 import { ArrowLeft, ArrowRight, Send } from "lucide-react";
 
 type SurveyNavigationProps = {
-  canSubmit: boolean;
   isFirstPage: boolean;
   isLastPage: boolean;
   submitting: boolean;
@@ -15,7 +14,6 @@ type SurveyNavigationProps = {
 };
 
 export function SurveyNavigation({
-  canSubmit,
   isFirstPage,
   isLastPage,
   submitting,
@@ -37,7 +35,7 @@ export function SurveyNavigation({
       {isLastPage ? (
         <Button
           type="button"
-          disabled={!canSubmit || submitting}
+          disabled={submitting}
           onClick={onSubmit}
         >
           {submitting ? <Spinner /> : <Send />}
