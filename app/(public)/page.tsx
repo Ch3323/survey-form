@@ -34,12 +34,19 @@ type ValidationTarget = {
   questionId: string;
 };
 
+type PageNavigationTarget = {
+  attempt: number;
+  pageNumber: number;
+};
+
 export default function Page() {
   const [survey, setSurvey] = useState<LoadedSurvey | null>(null);
   const [answers, setAnswers] = useState<Answers>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [validationTarget, setValidationTarget] =
     useState<ValidationTarget | null>(null);
+  const [pageNavigationTarget, setPageNavigationTarget] =
+    useState<PageNavigationTarget | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [responseId, setResponseId] = useState("");
   const [averageScore, setAverageScore] = useState<number | null>(null);
@@ -166,6 +173,25 @@ export default function Page() {
     return () => window.cancelAnimationFrame(frame);
   }, [currentPageGroup, validationTarget]);
 
+  useEffect(() => {
+    if (!pageNavigationTarget || !currentPageGroup) {
+      return;
+    }
+
+    if (currentPageGroup.pageNumber !== pageNavigationTarget.pageNumber) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [currentPageGroup, pageNavigationTarget]);
+
   function updateAnswer(questionId: string, value: AnswerValue | undefined) {
     setAnswers((current) => ({ ...current, [questionId]: value }));
 
@@ -183,6 +209,10 @@ export default function Page() {
 
     if (previousPage) {
       setCurrentPage(previousPage.pageNumber);
+      setPageNavigationTarget((current) => ({
+        attempt: (current?.attempt ?? 0) + 1,
+        pageNumber: previousPage.pageNumber,
+      }));
     }
   }
 
@@ -191,6 +221,10 @@ export default function Page() {
 
     if (nextPage) {
       setCurrentPage(nextPage.pageNumber);
+      setPageNavigationTarget((current) => ({
+        attempt: (current?.attempt ?? 0) + 1,
+        pageNumber: nextPage.pageNumber,
+      }));
     }
   }
 
