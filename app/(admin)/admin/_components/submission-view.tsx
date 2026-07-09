@@ -55,7 +55,12 @@ export function SubmissionView({
       <Card className="rounded-xl">
         <CardContent className="flex flex-col items-center gap-3 py-8 text-center text-sm text-muted-foreground">
           <p>{responsesError}</p>
-          <Button type="button" variant="outline" size="sm" onClick={onReloadResponses}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onReloadResponses}
+          >
             Try again
           </Button>
         </CardContent>
@@ -83,17 +88,20 @@ export function SubmissionView({
       <SubmissionOverview
         responses={responses}
       />
-      <div className="grid gap-4 xl:grid-cols-[360px_1fr]">
-        <SubmissionList
-          clearingResponses={clearingResponses}
-          responses={responses}
-          selectedResponseId={selectedResponseId}
-          surveyId={surveyId}
-          surveyQuestions={surveyQuestions}
-          onClearResponses={onClearResponses}
-          onSelectResponse={onSelectResponse}
-        />
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,3fr)_minmax(320px,2fr)]">
+        <div className="min-w-0">
+          <SubmissionList
+            clearingResponses={clearingResponses}
+            responses={responses}
+            selectedResponseId={selectedResponseId}
+            surveyId={surveyId}
+            surveyQuestions={surveyQuestions}
+            onClearResponses={onClearResponses}
+            onSelectResponse={onSelectResponse}
+          />
+        </div>
         <SubmissionDetailCard
+          className="lg:sticky lg:top-5"
           deletingResponseId={deletingResponseId}
           selectedResponse={selectedResponse}
           onDeleteResponse={onDeleteResponse}
