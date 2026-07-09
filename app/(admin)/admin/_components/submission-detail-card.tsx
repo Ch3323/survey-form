@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
+import { cn } from "@/lib/utils";
 import { ClipboardList, Trash2 } from "lucide-react";
 import type { SurveyResponse } from "../_lib/types";
 import {
@@ -19,22 +20,39 @@ import {
   typeLabel,
 } from "../_lib/survey-form-utils";
 import { Stat } from "./stat";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type SubmissionDetailCardProps = {
+  className?: string;
   deletingResponseId: string;
   selectedResponse?: SurveyResponse;
   onDeleteResponse: (responseId: string) => void;
 };
 
 export function SubmissionDetailCard({
+  className,
   deletingResponseId,
   selectedResponse,
   onDeleteResponse,
 }: SubmissionDetailCardProps) {
   return (
-    <Card className="rounded-xl">
-      <CardHeader className="border-b">
+    <Card
+      className={cn(
+        "flex max-h-none min-h-0 flex-col overflow-hidden rounded-xl lg:max-h-[calc(100vh-2.5rem)]",
+        className,
+      )}
+    >
+      <CardHeader className="shrink-0 border-b bg-card">
         <CardTitle className="flex items-center gap-2">
           <ClipboardList className="size-4" />
           Submission detail
@@ -45,7 +63,7 @@ export function SubmissionDetailCard({
             : "Select a submission"}
         </CardDescription>
       </CardHeader>
-      <CardContent className="grid gap-4 pt-4">
+      <CardContent className="flex min-h-0 flex-1 flex-col gap-4 pt-4">
         {selectedResponse ? (
           <>
             <SubmissionScoreSummary response={selectedResponse} />
@@ -63,7 +81,7 @@ export function SubmissionDetailCard({
 
 function SubmissionScoreSummary({ response }: { response: SurveyResponse }) {
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid shrink-0 grid-cols-2 gap-3">
       <Stat
         label="Level"
         value={assessmentLevelLabel(response.assessmentLevel)}
@@ -80,7 +98,7 @@ function SubmissionScoreSummary({ response }: { response: SurveyResponse }) {
 
 function SubmissionAnswerList({ response }: { response: SurveyResponse }) {
   return (
-    <div className="grid gap-3 max-h-96 overflow-y-scroll scrollbar-none scroll-smooth">
+    <div className="grid min-h-0 flex-1 gap-3 overflow-y-auto pr-1 scroll-smooth">
       {response.answers.map((answer) => (
         <div
           key={answer.id}
@@ -128,7 +146,8 @@ function DeleteSubmissionAction({
         <AlertDialogHeader>
           <AlertDialogTitle>Delete submissions?</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently delete this submission and answers. This action cannot be undone.
+            This will permanently delete this submission and answers. This
+            action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
